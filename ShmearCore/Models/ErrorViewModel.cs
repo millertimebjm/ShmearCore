@@ -1,6 +1,6 @@
 using System;
 
-namespace ShmearCore.Models
+namespace Shmear.Web.Models
 {
     public class ErrorViewModel
     {

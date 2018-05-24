@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using ShmearCore.Models;
+using Shmear.Web.Models;
 
-namespace ShmearCore.Controllers
+namespace Shmear.Web.Controllers
 {
     public class HomeController : Controller
     {
@@ -15,18 +11,9 @@ namespace ShmearCore.Controllers
             return View();
         }
 
-        public IActionResult About()
+        public ActionResult Start(string name)
         {
-            ViewData["Message"] = "Your application description page.";
-
-            return View();
-        }
-
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
+            return RedirectToAction("Index", "Shmear", new { name });
         }
 
         public IActionResult Error()
