@@ -4,4 +4,8 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Shmear.EntityFrameworkCore\Shmear.EntityFramework.csproj" />
+  </ItemGroup>
+
 </Project>
