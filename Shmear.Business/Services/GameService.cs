@@ -51,18 +51,17 @@ namespace Shmear.Business.Services
             }
         }
 
-        //public async static Task<IEnumerable<GamePlayer>> GetGamePlayers(int gameId)
-        //{
-
-
-        //    using (var db = new CardContext())
-        //    {
-        //        var options = new DataLoadOptions();
-        //        options.LoadWith<GamePlayer>(_ => _.Player);
-        //        db.LoadOptions = options;
-
-        //        return db.GamePlayers.Where(_ => _.GameId == gameId).ToList();
-        //    }
-        //}
+        public async static Task<IEnumerable<GamePlayer>> GetGamePlayers(int gameId)
+        {
+            using (var db = new CardContext())
+            {
+                var gamePlayers = await db.GamePlayer.Where(_ => _.GameId == gameId).ToListAsync();
+                foreach (var gamePlayer in gamePlayers)
+                {
+                    gamePlayer.Player = await db.Player.FindAsync(gamePlayer.PlayerId);
+                }
+                return gamePlayers;
+            }
+        }
     }
 }
