@@ -158,6 +158,17 @@
             .withUrl("/shmearHub")
             .build();
 
+        function getParameterByName(name) {
+            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                results = regex.exec(location.search);
+            return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+
+        connection.on("Logout", (message) => {
+            alert(message);
+            window.location.replace('http://' + document.location.host + '/');
+        });
 
         connection.on("ReceiveMessage", (user, message) => {
             const msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -168,6 +179,7 @@
         var promise = connection.start();
         promise.then(function () {
             connection.invoke("SendMessage", "Brandon", "HI").catch(err => console.error(err.toString()));
+            connection.invoke("SetPlayerName", getParameterByName('name'))
         });        
     });
 </script>

@@ -48,6 +48,8 @@ namespace Shmear.Business.Services
                 }
 
                 await db.SaveChangesAsync();
+                //int recordsChanged = db.SaveChanges();
+
                 return returnPlayer;
             }
         }

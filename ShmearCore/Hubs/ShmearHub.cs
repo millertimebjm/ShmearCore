@@ -21,7 +21,7 @@ namespace Shmear.Web.Hubs
         {
             await base.OnConnectedAsync();
 
-            string userName = Context.User.Identity.Name;
+            string userName = Context.User.Identity.Name ?? "";
             string connectionId = Context.ConnectionId;
 
             var player = await PlayerService.GetPlayer(connectionId);
