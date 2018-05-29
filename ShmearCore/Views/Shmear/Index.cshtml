@@ -165,10 +165,10 @@
             alert(encodedMsg);
         });
 
-        connection.start();
-        setTimeout(function () {
+        var promise = connection.start();
+        promise.then(function () {
             connection.invoke("SendMessage", "Brandon", "HI").catch(err => console.error(err.toString()));
-        },1000);           
+        });        
     });
 </script>
 
