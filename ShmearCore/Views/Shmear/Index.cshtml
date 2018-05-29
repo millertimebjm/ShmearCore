@@ -153,7 +153,20 @@
 @*<script src="/signalr/Hubs"></script>*@
 
 <script>
+    var seats = ['', '', '', ''];
+    var buttons;
+    var shmearHub;
+    var gameId = 0;
+    var gameStarted = false;
+    var highestWager = 0;
+    var i = 0;
+    var handCardIds = ['', '', '', '', '', ''];
+
     $().ready(function () {
+        name = '@Model.Name';
+        buttons = [$('#seat1'), $('#seat2'), $('#seat3'), $('#seat4')];
+        wagers = [$('#wager2link'), $('#wager3link'), $('#wager4link'), $('#wager5link')];
+
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/shmearHub")
             .build();
@@ -170,17 +183,80 @@
             window.location.replace('http://' + document.location.host + '/');
         });
 
-        connection.on("ReceiveMessage", (user, message) => {
-            const msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            const encodedMsg = user + " says " + msg;
-            alert(encodedMsg);
-        });
-
         var promise = connection.start();
         promise.then(function () {
-            connection.invoke("SendMessage", "Brandon", "HI").catch(err => console.error(err.toString()));
-            connection.invoke("SetPlayerName", getParameterByName('name'))
-        });        
+            connection.invoke("SetPlayerName", getParameterByName('name'));
+
+            $().ready(function () {
+
+            });
+        });
+
+        connection.on("ReceiveSeatStatuses", (openGameId, seatArray) => {
+            //console.log('Received seat statuses, connection ID=' + $.connection.hub.id);
+            seats = seatArray;
+            gameId = openGameId;
+            if (!gameStarted) {
+                $('#seatDiv').show();
+                $('#cardDiv').hide();
+            } else {
+                $('#cardDiv').show();
+                $('#seatDiv').hide();
+            }
+            seatButtonUpdate();
+            readyButtonUpdate();
+        });
+
+        function seatButtonUpdate() {
+            for (var i = 0; i < 4; i++) {
+                //console.log(seats[i]);
+                buttons[i].removeClass('btn-primary');
+                buttons[i].removeClass('btn-default');
+                buttons[i].removeClass('btn-success');
+                buttons[i].text(seats[i]);
+                if (seats[i] === '') {
+                    buttons[i].addClass('btn-primary');
+                    buttons[i].text(i + 1);
+                }
+                if (seats[i] === name) {
+                    buttons[i].addClass('btn-success');
+                    //buttons[i].data(name);
+                }
+                if (!(seats[i] === name) && !(seats[i] === '')) {
+                    buttons[i].addClass('btn-default');
+                    //buttons[i].data(seats[i]);
+                }
+            }
+
+            for (var i = 0; i < 4; i++) {
+                if (!(seats[i] === '')) {
+                    break;
+                }
+                if (i === 3) {
+                    $('ready').show();
+                    return;
+                }
+            };
+
+            for (var i = 0; i < 4; i++) {
+                if (!(seats[i] === '')) {
+                    $('#player'.concat(i + 1)).text(seats[i]);
+                }
+            };
+
+            $('ready').hide();
+        };
+
+        function readyButtonUpdate() {
+            $('#title').html('Pick a seat');
+            $('#ready').hide();
+            for (var j = 0; j < 4; j++) {
+                if (buttons[j].text() === '@Model.Name') {
+                    $('#title').html('Toggle the Ready button');
+                    $('#ready').show();
+                }
+            };
+        };        
     });
 </script>
 
