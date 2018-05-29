@@ -1,0 +1,23 @@
+{
+  "name": "ShmearCore",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/millertimebjm/ShmearCore.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/millertimebjm/ShmearCore/issues"
+  },
+  "homepage": "https://github.com/millertimebjm/ShmearCore#readme",
+  "dependencies": {
+    "@aspnet/signalr": "^1.0.0-rc1-update1"
+  }
+}

@@ -150,9 +150,29 @@
 <div id="messages" style="width: 60%;"></div>
 
 @*<script src="~/Hubs/"></script>*@
-<script src="/signalr/Hubs"></script>
+@*<script src="/signalr/Hubs"></script>*@
 
 <script>
+    $().ready(function () {
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/shmearHub")
+            .build();
+
+
+        connection.on("ReceiveMessage", (user, message) => {
+            const msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const encodedMsg = user + " says " + msg;
+            alert(encodedMsg);
+        });
+
+        connection.start();
+        setTimeout(function () {
+            connection.invoke("SendMessage", "Brandon", "HI").catch(err => console.error(err.toString()));
+        },1000);           
+    });
+</script>
+
+@*<script>
     var seats = ['', '', '', ''];
     var buttons;
     var shmearHub;
@@ -383,4 +403,4 @@
 
         $('ready').hide();
     };
-</script>
+</script>*@

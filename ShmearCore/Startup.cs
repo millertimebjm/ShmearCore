@@ -39,7 +39,7 @@ namespace Shmear.Web
 
             app.UseSignalR(options =>
             {
-                options.MapHub<ShmearHub>("/hubs");
+                options.MapHub<ShmearHub>("/shmearhub");
             });
 
             app.UseMvc(routes =>

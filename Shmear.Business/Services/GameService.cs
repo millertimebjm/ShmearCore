@@ -11,7 +11,7 @@ namespace Shmear.Business.Services
 {
     public class GameService
     {
-        public async static Task<EntityFramework.EntityFrameworkCore.SqlServer.Models.Game> GetOpenGame()
+        public async static Task<Game> GetOpenGame()
         {
             
             using (var db = new CardContext())
@@ -26,7 +26,7 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async static Task<EntityFramework.EntityFrameworkCore.SqlServer.Models.Game> CreateGame()
+        public async static Task<Game> CreateGame()
         {
             var game = new EntityFramework.EntityFrameworkCore.SqlServer.Models.Game
             {
@@ -43,12 +43,26 @@ namespace Shmear.Business.Services
             return await GetGame(game.Id);
         }
 
-        public async static Task<EntityFramework.EntityFrameworkCore.SqlServer.Models.Game> GetGame(int id)
+        public async static Task<Game> GetGame(int id)
         {
             using (var db = new CardContext())
             {
                 return await db.Game.SingleAsync(_ => _.Id == id);
             }
         }
+
+        //public async static Task<IEnumerable<GamePlayer>> GetGamePlayers(int gameId)
+        //{
+
+
+        //    using (var db = new CardContext())
+        //    {
+        //        var options = new DataLoadOptions();
+        //        options.LoadWith<GamePlayer>(_ => _.Player);
+        //        db.LoadOptions = options;
+
+        //        return db.GamePlayers.Where(_ => _.GameId == gameId).ToList();
+        //    }
+        //}
     }
 }
