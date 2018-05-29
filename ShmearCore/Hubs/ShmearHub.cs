@@ -17,26 +17,28 @@ namespace Shmear.Web.Hubs
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
 
-        //public async override Task OnConnectedAsync()
-        //{
-        //    string userName = Context.User.Identity.Name;
-        //    string connectionId = Context.ConnectionId;
+        public async override Task OnConnectedAsync()
+        {
+            await base.OnConnectedAsync();
 
-        //    var player = await PlayerService.GetPlayer(connectionId);
+            string userName = Context.User.Identity.Name;
+            string connectionId = Context.ConnectionId;
 
-        //    if (player == null || player.Id == 0)
-        //    {
-        //        player = new Player()
-        //        {
-        //            ConnectionId = connectionId,
-        //            Name = userName
-        //        };
-        //    }
+            var player = await PlayerService.GetPlayer(connectionId);
 
-        //    await PlayerService.SavePlayer(player);
+            if (player == null || player.Id == 0)
+            {
+                player = new Player()
+                {
+                    ConnectionId = connectionId,
+                    Name = userName
+                };
+            }
 
-        //    return base.OnConnectedAsync();
-        //}
+            await PlayerService.SavePlayer(player);
+
+            await base.OnConnectedAsync();
+        }
 
         //public async Task SetPlayerName(string name)
         //{
