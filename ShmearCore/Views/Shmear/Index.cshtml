@@ -259,13 +259,21 @@
             };
         };
 
+        $('#leave').click(function () {
+            //shmearHub.server.leaveSeat(gameId);
+            console.log("Calling the LeaveSeat function from Client");
+            connection.invoke("LeaveSeat", gameId);
+            $('#ready').hide();
+            $('#cardDiv').hide();
+            $('#seatDiv').show();
+        });
+
         for (var i = 0; i < 4; i++) {
             buttons[i].click(function () {
                 //console.log('Trying to sit at ' + $(this).val() + ', connection ID=' + $.connection.hub.id);
                 console.log("SetSeatStatus being called from Client");
                 var promise = connection.invoke("SetSeatStatus", gameId, $(this).val());
                 promise.then(function () {
-                    // TODO: maybe the 
                     readyButtonUpdate();
                 });
 

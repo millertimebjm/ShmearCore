@@ -60,7 +60,8 @@ namespace Shmear.Web.Hubs
             }
 
             var openGame = await GameService.GetOpenGame();
-            await Clients.Client(player.ConnectionId).SendAsync("ReceiveSeatStatuses", openGame.Id, await GetSeatsArray(openGame.Id));
+            var seats = await GetSeatsArray(openGame.Id);
+            await Clients.Client(player.ConnectionId).SendAsync("ReceiveSeatStatuses", openGame.Id, seats);
             return;
         }
 
@@ -127,19 +128,20 @@ namespace Shmear.Web.Hubs
                 game = await GameService.GetGame(gameId);
             }
 
-            await Clients.All.SendAsync("ReceiveSeatStatuses", GetSeatsArray(game.Id));
+            var seats = await GetSeatsArray(game.Id);
+            await Clients.All.SendAsync("ReceiveSeatStatuses", game.Id, seats);
             //Clients.All.ReceiveSeatStatuses(game.Id, GetSeatsArray(game.Id));
         }
 
-        //public void LeaveSeat(int gameId)
-        //{
-        //    var game = GameService.GetGame(gameId);
-        //    var player = PlayerService.GetPlayer(Context.ConnectionId);
-        //    //var gamePlayer = GameService.GetGamePlayers(gameId).Single(_ => _.PlayerId == player.Id);
-        //    GameService.RemovePlayer(gameId, player.Id);
+        public async Task LeaveSeat(int gameId)
+        {
+            var game = await GameService.GetGame(gameId);
+            var player = await PlayerService.GetPlayer(Context.ConnectionId);
+            //var gamePlayer = GameService.GetGamePlayers(gameId).Single(_ => _.PlayerId == player.Id);
+            await GameService.RemovePlayer(gameId, player.Id);
 
-        //    SendSeatStatus(gameId);
-        //}
+            await SendSeatStatus(gameId);
+        }
 
         //private string[] GetSeatsArray(int gameId = 0)
         //{

@@ -102,7 +102,7 @@ namespace Shmear.Business.Services
         {
             using (var db = new CardContext())
             {
-                var game = await db.Game.SingleAsync(_ => _.Id == gameId);
+                var game = await db.Game.Include(_ => _.GamePlayer).SingleAsync(_ => _.Id == gameId);
                 var player = await db.Player.SingleAsync(_ => _.Id == playerId);
 
                 if (game.GamePlayer.Any(_ => _.PlayerId == playerId))
