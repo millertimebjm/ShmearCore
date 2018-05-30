@@ -186,10 +186,6 @@
         var promise = connection.start();
         promise.then(function () {
             connection.invoke("SetPlayerName", getParameterByName('name'));
-
-            $().ready(function () {
-
-            });
         });
 
         connection.on("ReceiveSeatStatuses", (openGameId, seatArray) => {
@@ -256,7 +252,20 @@
                     $('#ready').show();
                 }
             };
-        };        
+        };
+
+        for (var i = 0; i < 4; i++) {
+            buttons[i].click(function () {
+                //console.log('Trying to sit at ' + $(this).val() + ', connection ID=' + $.connection.hub.id);
+                var promise = connection.invoke("SetSeatStatus", gameId, $(this).val());
+                promise.then(function () {
+                    // TODO: maybe the 
+                    readyButtonUpdate();
+                });
+
+                //console.log('After to sit, connection ID=' + $.connection.hub.id);
+            });
+        };
     });
 </script>
 

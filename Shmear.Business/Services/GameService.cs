@@ -63,5 +63,55 @@ namespace Shmear.Business.Services
                 return gamePlayers;
             }
         }
+
+        public async static Task<bool> AddPlayer(int gameId, int playerId, int seatNumber)
+        {
+            using (var db = new CardContext())
+            {
+                var game = await db.Game.SingleAsync(_ => _.Id == gameId);
+                var player = await db.Player.SingleAsync(_ => _.Id == playerId);
+                var gamePlayers = game.GamePlayer.OrderBy(_ => _.SeatNumber);
+
+                if (!gamePlayers.Any(_ => _.SeatNumber == seatNumber))
+                {
+                    var gamePlayer = new GamePlayer()
+                    {
+                        GameId = gameId,
+                        PlayerId = playerId,
+                        SeatNumber = seatNumber,
+                        Ready = false
+                    };
+
+                    if (game.GamePlayer.Any(_ => _.PlayerId == playerId))
+                    {
+                        var gamePlayerToRemove = await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
+                        db.GamePlayer.Remove(gamePlayerToRemove);
+                    }
+
+                    await db.GamePlayer.AddAsync(gamePlayer);
+                    (await db.Player.SingleAsync(_ => _.Id == playerId)).KeepAlive = DateTime.Now;
+                    await db.SaveChangesAsync();
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        public async static Task<bool> RemovePlayer(int gameId, int playerId)
+        {
+            using (var db = new CardContext())
+            {
+                var game = await db.Game.SingleAsync(_ => _.Id == gameId);
+                var player = await db.Player.SingleAsync(_ => _.Id == playerId);
+
+                if (game.GamePlayer.Any(_ => _.PlayerId == playerId))
+                {
+                    db.GamePlayer.Remove(await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId));
+                    await db.SaveChangesAsync();
+                }
+                return true;
+            }
+        }
     }
 }

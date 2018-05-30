@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Shmear.Business.Services;
 using Shmear.Web.Models;
 
 namespace Shmear.Web.Controllers
@@ -8,6 +10,9 @@ namespace Shmear.Web.Controllers
     {
         public IActionResult Index()
         {
+            // Initialize Database - Don't care about result
+            Task.Run(() => GameService.GetOpenGame());
+
             return View();
         }
 
