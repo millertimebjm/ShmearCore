@@ -167,6 +167,7 @@
         buttons = [$('#seat1'), $('#seat2'), $('#seat3'), $('#seat4')];
         wagers = [$('#wager2link'), $('#wager3link'), $('#wager4link'), $('#wager5link')];
 
+        console.log("Connection Created");
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/shmearHub")
             .build();
@@ -179,16 +180,20 @@
         }
 
         connection.on("Logout", (message) => {
+            console.log("Logout called from Server");
             alert(message);
             window.location.replace('http://' + document.location.host + '/');
         });
 
+        console.log("Connection Started");
         var promise = connection.start();
         promise.then(function () {
+            console.log("SetPlayerName being called from Client");
             connection.invoke("SetPlayerName", getParameterByName('name'));
         });
 
         connection.on("ReceiveSeatStatuses", (openGameId, seatArray) => {
+            console.log("ReceiveSeatStatuses called from Server");
             //console.log('Received seat statuses, connection ID=' + $.connection.hub.id);
             seats = seatArray;
             gameId = openGameId;
@@ -257,6 +262,7 @@
         for (var i = 0; i < 4; i++) {
             buttons[i].click(function () {
                 //console.log('Trying to sit at ' + $(this).val() + ', connection ID=' + $.connection.hub.id);
+                console.log("SetSeatStatus being called from Client");
                 var promise = connection.invoke("SetSeatStatus", gameId, $(this).val());
                 promise.then(function () {
                     // TODO: maybe the 
