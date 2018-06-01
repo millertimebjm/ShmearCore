@@ -113,5 +113,64 @@ namespace Shmear.Business.Services
                 return true;
             }
         }
+
+        public async static Task<GamePlayer> GetGamePlayer(int gameId, int playerId)
+        {
+            using (var db = new CardContext())
+            {
+                var game = await db.Game.SingleAsync(_ => _.Id == gameId);
+                return await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
+            }
+        }
+
+        public async static Task<GamePlayer> SaveGamePlayer(GamePlayer gamePlayer)
+        {
+            using (var db = new CardContext())
+            {
+                var gamePlayerReturn = new GamePlayer();
+                if (gamePlayer.Id == 0)
+                {
+                    await db.GamePlayer.AddAsync(gamePlayer);
+                    gamePlayerReturn = gamePlayer;
+                }
+                else
+                {
+                    var gamePlayerTemp = await db.GamePlayer.SingleAsync(_ => _.Id == gamePlayer.Id);
+                    gamePlayerTemp.SeatNumber = gamePlayer.SeatNumber;
+                    gamePlayerTemp.Wager = gamePlayer.Wager;
+                    gamePlayerTemp.Ready = gamePlayer.Ready;
+                    gamePlayerReturn = gamePlayerTemp;
+                }
+                await db.SaveChangesAsync();
+                return await GameService.GetGamePlayer(gamePlayerReturn.GameId, gamePlayerReturn.PlayerId);
+            }
+        }
+
+        public async static Task<bool> StartGame(int gameId)
+        {
+            using (var db = new CardContext())
+            {
+
+                var game = await db.Game.SingleAsync(_ => _.Id == gameId);
+                if (game.StartedDate == null)
+                {
+                    game.StartedDate = DateTime.Now;
+                        await db.SaveChangesAsync();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        public static async Task<List<Player>> GetPlayersByGameAsync(int gameId)
+        {
+            using (var db = new CardContext())
+            {
+                return await db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => _.Player).ToListAsync();
+            }
+        }
     }
 }

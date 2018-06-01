@@ -4,6 +4,7 @@ using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
 using System;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Collections.Generic;
 //using Shmear.Business.Game;
 
 namespace Shmear.Web.Hubs
@@ -143,287 +144,334 @@ namespace Shmear.Web.Hubs
             await SendSeatStatus(gameId);
         }
 
-        //private string[] GetSeatsArray(int gameId = 0)
-        //{
-        //    var game = new Game();
-        //    if (gameId == 0)
-        //    {
-        //        game = GameService.GetOpenGame();
-        //    }
-        //    else
-        //    {
-        //        game = GameService.GetGame(gameId);
-        //    }
-        //    var gamePlayers = GameService.GetGamePlayers(game.Id);
-        //    var seats = new string[] {
-        //        "",
-        //        "",
-        //        "",
-        //        ""
-        //    };
+        public async Task TogglePlayerReadyStatus(int gameId)
+        {
+            var game = await GameService.GetGame(gameId);
+            var player = await PlayerService.GetPlayer(Context.ConnectionId);
+            var gamePlayer = await GameService.GetGamePlayer(gameId, player.Id);
+            gamePlayer.Ready = !gamePlayer.Ready;
+            gamePlayer = await GameService.SaveGamePlayer(gamePlayer);
 
-        //    foreach (var gamePlayer in gamePlayers)
-        //    {
-        //        seats[gamePlayer.SeatNumber - 1] = gamePlayer.Player.Name;
-        //    }
-        //    return seats;
-        //}
+            await Clients.Client(player.ConnectionId).SendAsync("UpdatePlayerReadyStatus", gamePlayer.Ready);
 
-        //private void SendCards(int gameId)
-        //{
-        //    var game = GameService.GetGame(gameId);
-        //    var gamePlayers = GameService.GetGamePlayers(game.Id).OrderBy(_ => _.SeatNumber).ToArray();
-        //    var cardCountByPlayerIndex = new int[4];
+            await CheckStartGame(gameId);
 
-        //    for (int i = 0; i < 4; i++)
-        //    {
-        //        var hand = HandService.GetHand(game.Id, gamePlayers[i].PlayerId);
-        //        cardCountByPlayerIndex[i] = hand.Count();
-        //    }
+            //UpdatePlayerReadyStatus(gameId);
+        }
 
-        //    for (int i = 0; i < 4; i++)
-        //    {
-        //        var cards = new List<string[]>();
-        //        var hand = HandService.GetHand(game.Id, gamePlayers[i].PlayerId);
-        //        foreach (var handCard in hand)
-        //        {
-        //            var card = CardService.GetCard(handCard.CardId);
-        //            cards.Add(new string[] {
-        //                handCard.CardId.ToString(),
-        //                //card.Suit.Char.ToString() + card.Value.Char.ToString()
-        //                card.Value.Name + card.Suit.Name,
-        //            });
-        //        }
-        //        Clients.Client(gamePlayers[i].Player.ConnectionId).cardUpdate(i, cards.ToArray(), cardCountByPlayerIndex);
-        //    }
+        private async Task CheckStartGame(int gameId)
+        {
+            var gamePlayers = await GameService.GetGamePlayers(gameId);
+            if (gamePlayers.Count(_ => _.Ready) == 4)
+            {
+                if (await GameService.StartGame(gameId))
+                {
+                    await BoardService.StartRound(gameId);
+                    await BoardService.DealCards(gameId);
 
-        //    gamePlayers = GameService.GetGamePlayers(gameId).ToArray();
-        //    if (gamePlayers.Count(_ => _.Wager != null) == 4 || gamePlayers.Max(_ => (_.Wager ?? 0) == 5))
-        //    {
-        //        var trick = TrickService.GetTricks(gameId).SingleOrDefault(_ => _.CompletedDate == null);
-        //        if (trick == null)
-        //        {
-        //            trick = TrickService.CreateTrick(gameId);
-        //        }
-        //        var gamePlayer = BoardService.GetNextCardPlayer(gameId, trick.Id);
-        //        for (var i = 0; i < 4; i++)
-        //        {
-        //            Clients.Client(gamePlayers[i].Player.ConnectionId).hideWager();
-        //            Clients.Client(gamePlayers[i].Player.ConnectionId).playerTurnUpdate(gamePlayer.SeatNumber);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        var gamePlayer = BoardService.GetNextWagerPlayer(gameId);
-        //        var highestWager = gamePlayers.Max(_ => _.Wager ?? 0);
+                    await SendCards(gameId);
+                }
+            }
+        }
 
-        //        for (var i = 0; i < 4; i++)
-        //        {
-        //            Clients.Client(gamePlayers[i].Player.ConnectionId).playerTurnUpdate(gamePlayer.SeatNumber);
-        //            Clients.Client(gamePlayers[i].Player.ConnectionId).wagerUpdate(highestWager);
-        //        }
-        //    }
-        //}
+        private async Task SendCards(int gameId)
+        {
+            var game = await GameService.GetGame(gameId);
+            var gamePlayers = (await GameService.GetGamePlayers(game.Id)).OrderBy(_ => _.SeatNumber).ToArray();
+            var cardCountByPlayerIndex = new int[4];
 
-        //public void SetPlayerName(string name)
-        //{
-        //    var player = PlayerService.GetPlayer(Context.ConnectionId);
-        //    if (name.Trim().Equals(string.Empty))
-        //    {
-        //        Clients.Client(player.ConnectionId).LogoutPlayer("Please pick a name");
-        //        return;
-        //    }
+            for (int i = 0; i < 4; i++)
+            {
+                var hand = await HandService.GetHand(game.Id, gamePlayers[i].PlayerId);
+                cardCountByPlayerIndex[i] = hand.Count();
+            }
 
-        //    var otherPlayer = PlayerService.GetPlayerByName(name.Trim());
+            for (int i = 0; i < 4; i++)
+            {
+                var cards = new List<string[]>();
+                var hand = await HandService.GetHand(game.Id, gamePlayers[i].PlayerId);
+                foreach (var handCard in hand)
+                {
+                    var card = await CardService.GetCard(handCard.CardId);
+                    cards.Add(new string[] {
+                        handCard.CardId.ToString(),
+                        //card.Suit.Char.ToString() + card.Value.Char.ToString()
+                        card.Value.Name + card.Suit.Name,
+                    });
+                }
+                await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("CardUpdate", i, cards.ToArray(), cardCountByPlayerIndex);
+            }
 
-        //    if (otherPlayer != null)
-        //    {
-        //        otherPlayer.ConnectionId = Context.ConnectionId;
-        //        otherPlayer.Name = name.Trim();
-        //        PlayerService.SavePlayer(otherPlayer);
-        //        PlayerService.DeletePlayer(player.Id);
-        //    }
-        //    else
-        //    {
-        //        player.Name = name.Trim();
-        //        PlayerService.SavePlayer(player);
-        //    }
+            gamePlayers = (await GameService.GetGamePlayers(gameId)).ToArray();
+            if (gamePlayers.Count(_ => _.Wager != null) == 4 || gamePlayers.Max(_ => (_.Wager ?? 0) == 5))
+            {
+                var trick = (await TrickService.GetTricks(gameId)).SingleOrDefault(_ => _.CompletedDate == null);
+                if (trick == null)
+                {
+                    trick = await TrickService.CreateTrick(gameId);
+                }
+                var gamePlayer = await BoardService.GetNextCardPlayer(gameId, trick.Id);
+                for (var i = 0; i < 4; i++)
+                {
+                    await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("HideWager");
+                    //await Clients.Client(gamePlayers[i].Player.ConnectionId).hideWager();
+                    await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", gamePlayer.SeatNumber);
+                    //Clients.Client(gamePlayers[i].Player.ConnectionId).playerTurnUpdate(gamePlayer.SeatNumber);
+                }
+            }
+            else
+            {
+                var gamePlayer = await BoardService.GetNextWagerPlayer(gameId);
+                var highestWager = gamePlayers.Max(_ => _.Wager ?? 0);
 
-        //    var openGame = GameService.GetOpenGame();
-        //    Clients.Client(player.ConnectionId).ReceiveSeatStatuses(openGame.Id, GetSeatsArray(openGame.Id));
-        //}
+                for (var i = 0; i < 4; i++)
+                {
+                    await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", gamePlayer.SeatNumber);
+                    //Clients.Client(gamePlayers[i].Player.ConnectionId).playerTurnUpdate(gamePlayer.SeatNumber);
+                    await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("WagerUpdate", highestWager);
+                    //Clients.Client(gamePlayers[i].Player.ConnectionId).wagerUpdate(highestWager);
+                }
+            }
+        }
 
-        //public void TogglePlayerReadyStatus(int gameId)
-        //{
-        //    var game = GameService.GetGame(gameId);
-        //    var player = PlayerService.GetPlayer(Context.ConnectionId);
-        //    var gamePlayer = GameService.GetGamePlayer(gameId, player.Id);
-        //    gamePlayer.Ready = !gamePlayer.Ready;
-        //    gamePlayer = GameService.SaveGamePlayer(gamePlayer);
+            //private string[] GetSeatsArray(int gameId = 0)
+            //{
+            //    var game = new Game();
+            //    if (gameId == 0)
+            //    {
+            //        game = GameService.GetOpenGame();
+            //    }
+            //    else
+            //    {
+            //        game = GameService.GetGame(gameId);
+            //    }
+            //    var gamePlayers = GameService.GetGamePlayers(game.Id);
+            //    var seats = new string[] {
+            //        "",
+            //        "",
+            //        "",
+            //        ""
+            //    };
 
-        //    Clients.Client(player.ConnectionId).UpdatePlayerReadyStatus(gamePlayer.Ready);
+            //    foreach (var gamePlayer in gamePlayers)
+            //    {
+            //        seats[gamePlayer.SeatNumber - 1] = gamePlayer.Player.Name;
+            //    }
+            //    return seats;
+            //}
 
-        //    CheckStartGame(gameId);
+            //    gamePlayers = GameService.GetGamePlayers(gameId).ToArray();
+            //    if (gamePlayers.Count(_ => _.Wager != null) == 4 || gamePlayers.Max(_ => (_.Wager ?? 0) == 5))
+            //    {
+            //        var trick = TrickService.GetTricks(gameId).SingleOrDefault(_ => _.CompletedDate == null);
+            //        if (trick == null)
+            //        {
+            //            trick = TrickService.CreateTrick(gameId);
+            //        }
+            //        var gamePlayer = BoardService.GetNextCardPlayer(gameId, trick.Id);
+            //        for (var i = 0; i < 4; i++)
+            //        {
+            //            Clients.Client(gamePlayers[i].Player.ConnectionId).hideWager();
+            //            Clients.Client(gamePlayers[i].Player.ConnectionId).playerTurnUpdate(gamePlayer.SeatNumber);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        var gamePlayer = BoardService.GetNextWagerPlayer(gameId);
+            //        var highestWager = gamePlayers.Max(_ => _.Wager ?? 0);
 
-        //    //UpdatePlayerReadyStatus(gameId);
-        //}
+            //        for (var i = 0; i < 4; i++)
+            //        {
+            //            Clients.Client(gamePlayers[i].Player.ConnectionId).playerTurnUpdate(gamePlayer.SeatNumber);
+            //            Clients.Client(gamePlayers[i].Player.ConnectionId).wagerUpdate(highestWager);
+            //        }
+            //    }
+            //}
 
-        //private void CheckStartGame(int gameId)
-        //{
-        //    var gamePlayers = GameService.GetGamePlayers(gameId);
-        //    if (gamePlayers.Count(_ => _.Ready) == 4)
-        //    {
-        //        if (GameService.StartGame(gameId))
-        //        {
-        //            BoardService.StartRound(gameId);
-        //            BoardService.DealCards(gameId);
+            //public void SetPlayerName(string name)
+            //{
+            //    var player = PlayerService.GetPlayer(Context.ConnectionId);
+            //    if (name.Trim().Equals(string.Empty))
+            //    {
+            //        Clients.Client(player.ConnectionId).LogoutPlayer("Please pick a name");
+            //        return;
+            //    }
 
-        //            SendCards(gameId);
-        //        }
-        //    }
-        //}
+            //    var otherPlayer = PlayerService.GetPlayerByName(name.Trim());
 
-        //public void SetWager(int gameId, int wager)
-        //{
-        //    var gamePlayers = GameService.GetGamePlayers(gameId).ToArray();
-        //    var nextGamePlayer = BoardService.GetNextWagerPlayer(gameId);
-        //    var player = PlayerService.GetPlayer(Context.ConnectionId);
-        //    if (nextGamePlayer.PlayerId == player.Id && gamePlayers.Select(_ => _.PlayerId).Contains(player.Id))
-        //    {
-        //        BoardService.SetWager(gameId, player.Id, wager);
+            //    if (otherPlayer != null)
+            //    {
+            //        otherPlayer.ConnectionId = Context.ConnectionId;
+            //        otherPlayer.Name = name.Trim();
+            //        PlayerService.SavePlayer(otherPlayer);
+            //        PlayerService.DeletePlayer(player.Id);
+            //    }
+            //    else
+            //    {
+            //        player.Name = name.Trim();
+            //        PlayerService.SavePlayer(player);
+            //    }
 
-        //        var board = BoardService.GetBoardByGameId(gameId);
-        //        gamePlayers = GameService.GetGamePlayers(gameId).OrderBy(_ => _.SeatNumber).ToArray();
-        //        if (gamePlayers.Count(_ => _.Wager != null) == 4)
-        //        {
-        //            var maxWagerPlayer = gamePlayers.Single(_ => _.Wager == (int)gamePlayers.Max(gp => gp.Wager));
-        //            board.Team1Wager = 0;
-        //            board.Team2Wager = 0;
-        //            if (maxWagerPlayer.SeatNumber == 1 || maxWagerPlayer.SeatNumber == 3)
-        //                board.Team1Wager = maxWagerPlayer.Wager;
-        //            else
-        //                board.Team2Wager = maxWagerPlayer.Wager;
+            //    var openGame = GameService.GetOpenGame();
+            //    Clients.Client(player.ConnectionId).ReceiveSeatStatuses(openGame.Id, GetSeatsArray(openGame.Id));
+            //}
 
-        //            BoardService.SaveBoard(board);
-        //        }
+            //private void CheckStartGame(int gameId)
+            //{
+            //    var gamePlayers = GameService.GetGamePlayers(gameId);
+            //    if (gamePlayers.Count(_ => _.Ready) == 4)
+            //    {
+            //        if (GameService.StartGame(gameId))
+            //        {
+            //            BoardService.StartRound(gameId);
+            //            BoardService.DealCards(gameId);
 
-        //        SendCards(gameId);
-        //        SendMessage(gameId, player.Name + " wagered " + wager);
-        //    }
-        //}
+            //            SendCards(gameId);
+            //        }
+            //    }
+            //}
 
-        //public void PlayCard(int gameId, int cardId)
-        //{
-        //    var card = CardService.GetCard(cardId);
-        //    var gamePlayers = GameService.GetGamePlayers(gameId);
-        //    if (gamePlayers.Count(_ => _.Wager != null) == 4 || gamePlayers.Max(_ => (_.Wager ?? 0) == 5))
-        //    {
-        //        var player = PlayerService.GetPlayer(Context.ConnectionId);
-        //        var handCards = HandService.GetHand(gameId, player.Id);
-        //        var board = BoardService.GetBoardByGameId(gameId);
-        //        var tricks = TrickService.GetTricks(gameId).Single(_ => _.CompletedDate == null);
-        //        var trick = TrickService.GetTrick(tricks.Id);
-        //        var nextCardGamePlayer = BoardService.GetNextCardPlayer(gameId, trick.Id);
+            //public void SetWager(int gameId, int wager)
+            //{
+            //    var gamePlayers = GameService.GetGamePlayers(gameId).ToArray();
+            //    var nextGamePlayer = BoardService.GetNextWagerPlayer(gameId);
+            //    var player = PlayerService.GetPlayer(Context.ConnectionId);
+            //    if (nextGamePlayer.PlayerId == player.Id && gamePlayers.Select(_ => _.PlayerId).Contains(player.Id))
+            //    {
+            //        BoardService.SetWager(gameId, player.Id, wager);
 
-        //        if (nextCardGamePlayer.PlayerId == player.Id
-        //            && handCards.Any(_ => _.CardId == cardId)
-        //            && GameService.ValidCardPlay(gameId, board.Id, player.Id, cardId))
-        //        {
-        //            trick = TrickService.PlayCard(trick.Id, player.Id, cardId);
-        //            SendMessage(gameId, "<p>" + player.Name + " played " + card.Suit.Char + card.Value.Char + "</p>");
-        //            if (trick.TrickCards.Count() == 4)
-        //            {
-        //                trick = TrickService.EndTrick(trick.Id);
-        //                var winningPlayer = PlayerService.GetPlayer((int)trick.WinningPlayerId);
-        //                var trickString = string.Empty;
-        //                foreach (var trickCard in trick.TrickCards)
-        //                {
-        //                    var cardInTrick = CardService.GetCard(trickCard.CardId);
-        //                    trickString += cardInTrick.Suit.Char + cardInTrick.Value.Char + " ";
-        //                }
-        //                SendMessage(gameId, "<p>" + winningPlayer.Name + " won the trick. " + trickString + "</p>");
-        //                handCards = HandService.GetHand(gameId, player.Id);
-        //                if (!handCards.Any())
-        //                {
-        //                    var roundResult = BoardService.EndRound(gameId);
+            //        var board = BoardService.GetBoardByGameId(gameId);
+            //        gamePlayers = GameService.GetGamePlayers(gameId).OrderBy(_ => _.SeatNumber).ToArray();
+            //        if (gamePlayers.Count(_ => _.Wager != null) == 4)
+            //        {
+            //            var maxWagerPlayer = gamePlayers.Single(_ => _.Wager == (int)gamePlayers.Max(gp => gp.Wager));
+            //            board.Team1Wager = 0;
+            //            board.Team2Wager = 0;
+            //            if (maxWagerPlayer.SeatNumber == 1 || maxWagerPlayer.SeatNumber == 3)
+            //                board.Team1Wager = maxWagerPlayer.Wager;
+            //            else
+            //                board.Team2Wager = maxWagerPlayer.Wager;
 
-        //                    var game = GameService.GetGame(gameId);
-        //                    game.Team1Points += roundResult.Team1RoundChange;
-        //                    game.Team2Points += roundResult.Team2RoundChange;
-        //                    GameService.SaveGame(game);
+            //            BoardService.SaveBoard(board);
+            //        }
 
-        //                    string s1 = roundResult.Team1RoundChange == 1 ? "s" : "";
-        //                    SendMessage(gameId, string.Format($"<p>Team 1 {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
+            //        SendCards(gameId);
+            //        SendMessage(gameId, player.Name + " wagered " + wager);
+            //    }
+            //}
 
-        //                    string s2 = roundResult.Team2RoundChange == 1 ? "s" : "";
-        //                    SendMessage(gameId, string.Format($"<p>Team 2 {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
+            //public void PlayCard(int gameId, int cardId)
+            //{
+            //    var card = CardService.GetCard(cardId);
+            //    var gamePlayers = GameService.GetGamePlayers(gameId);
+            //    if (gamePlayers.Count(_ => _.Wager != null) == 4 || gamePlayers.Max(_ => (_.Wager ?? 0) == 5))
+            //    {
+            //        var player = PlayerService.GetPlayer(Context.ConnectionId);
+            //        var handCards = HandService.GetHand(gameId, player.Id);
+            //        var board = BoardService.GetBoardByGameId(gameId);
+            //        var tricks = TrickService.GetTricks(gameId).Single(_ => _.CompletedDate == null);
+            //        var trick = TrickService.GetTrick(tricks.Id);
+            //        var nextCardGamePlayer = BoardService.GetNextCardPlayer(gameId, trick.Id);
 
-        //                    TrickService.ClearTricks(gameId);
-        //                    BoardService.StartRound(gameId);
-        //                    BoardService.DealCards(gameId);
-        //                }
-        //            }
+            //        if (nextCardGamePlayer.PlayerId == player.Id
+            //            && handCards.Any(_ => _.CardId == cardId)
+            //            && GameService.ValidCardPlay(gameId, board.Id, player.Id, cardId))
+            //        {
+            //            trick = TrickService.PlayCard(trick.Id, player.Id, cardId);
+            //            SendMessage(gameId, "<p>" + player.Name + " played " + card.Suit.Char + card.Value.Char + "</p>");
+            //            if (trick.TrickCards.Count() == 4)
+            //            {
+            //                trick = TrickService.EndTrick(trick.Id);
+            //                var winningPlayer = PlayerService.GetPlayer((int)trick.WinningPlayerId);
+            //                var trickString = string.Empty;
+            //                foreach (var trickCard in trick.TrickCards)
+            //                {
+            //                    var cardInTrick = CardService.GetCard(trickCard.CardId);
+            //                    trickString += cardInTrick.Suit.Char + cardInTrick.Value.Char + " ";
+            //                }
+            //                SendMessage(gameId, "<p>" + winningPlayer.Name + " won the trick. " + trickString + "</p>");
+            //                handCards = HandService.GetHand(gameId, player.Id);
+            //                if (!handCards.Any())
+            //                {
+            //                    var roundResult = BoardService.EndRound(gameId);
 
-        //            SendCards(gameId);
-        //        }
-        //    }
-        //}
+            //                    var game = GameService.GetGame(gameId);
+            //                    game.Team1Points += roundResult.Team1RoundChange;
+            //                    game.Team2Points += roundResult.Team2RoundChange;
+            //                    GameService.SaveGame(game);
 
-        //private string WagerResult(RoundResult roundResult, int teamId)
-        //{
-        //    if (roundResult.TeamWager == teamId)
-        //    {
-        //        return $"with a wager of {roundResult.TeamWagerValue} ";
-        //    }
-        //    return "";
-        //}
+            //                    string s1 = roundResult.Team1RoundChange == 1 ? "s" : "";
+            //                    SendMessage(gameId, string.Format($"<p>Team 1 {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
 
-        //public override Task OnConnected()
-        //{
-        //    string userName = Context.User.Identity.Name;
-        //    string connectionId = Context.ConnectionId;
+            //                    string s2 = roundResult.Team2RoundChange == 1 ? "s" : "";
+            //                    SendMessage(gameId, string.Format($"<p>Team 2 {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
 
-        //    var player = PlayerService.GetPlayer(connectionId);
+            //                    TrickService.ClearTricks(gameId);
+            //                    BoardService.StartRound(gameId);
+            //                    BoardService.DealCards(gameId);
+            //                }
+            //            }
 
-        //    if (player == null || player.Id == 0)
-        //    {
-        //        player = new Player()
-        //        {
-        //            ConnectionId = connectionId,
-        //            Name = userName
-        //        };
-        //    }
+            //            SendCards(gameId);
+            //        }
+            //    }
+            //}
 
-        //    PlayerService.SavePlayer(player);
+            //private string WagerResult(RoundResult roundResult, int teamId)
+            //{
+            //    if (roundResult.TeamWager == teamId)
+            //    {
+            //        return $"with a wager of {roundResult.TeamWagerValue} ";
+            //    }
+            //    return "";
+            //}
 
-        //    return base.OnConnected();
-        //}
+            //public override Task OnConnected()
+            //{
+            //    string userName = Context.User.Identity.Name;
+            //    string connectionId = Context.ConnectionId;
 
-        //public void SendChat(int gameId, string message)
-        //{
-        //    var gamePlayer = GameService.GetGamePlayer(gameId, Context.ConnectionId);
-        //    if (gamePlayer != null)
-        //        SendMessage(gameId, $"<b>{gamePlayer.Player.Name}:</b> {message}");
-        //}
+            //    var player = PlayerService.GetPlayer(connectionId);
 
-        //private void SendMessage(int gameId, string message)
-        //{
-        //    var gamePlayers = GameService.GetGamePlayers(gameId);
-        //    foreach (var gamePlayer in gamePlayers)
-        //    {
-        //        SendMessage(gameId, gamePlayer.Player.ConnectionId, message);
-        //    }
-        //}
+            //    if (player == null || player.Id == 0)
+            //    {
+            //        player = new Player()
+            //        {
+            //            ConnectionId = connectionId,
+            //            Name = userName
+            //        };
+            //    }
 
-        //private void SendMessage(int gameId, int playerId, string message)
-        //{
-        //    var gamePlayer = GameService.GetGamePlayer(gameId, playerId);
-        //    SendMessage(gameId, gamePlayer.Player.ConnectionId, message);
-        //}
+            //    PlayerService.SavePlayer(player);
 
-        //private void SendMessage(int gameId, string connectionId, string message)
-        //{
-        //    Clients.Client(connectionId).sendMessage(message);
-        //}
-    }
+            //    return base.OnConnected();
+            //}
+
+            //public void SendChat(int gameId, string message)
+            //{
+            //    var gamePlayer = GameService.GetGamePlayer(gameId, Context.ConnectionId);
+            //    if (gamePlayer != null)
+            //        SendMessage(gameId, $"<b>{gamePlayer.Player.Name}:</b> {message}");
+            //}
+
+            //private void SendMessage(int gameId, string message)
+            //{
+            //    var gamePlayers = GameService.GetGamePlayers(gameId);
+            //    foreach (var gamePlayer in gamePlayers)
+            //    {
+            //        SendMessage(gameId, gamePlayer.Player.ConnectionId, message);
+            //    }
+            //}
+
+            //private void SendMessage(int gameId, int playerId, string message)
+            //{
+            //    var gamePlayer = GameService.GetGamePlayer(gameId, playerId);
+            //    SendMessage(gameId, gamePlayer.Player.ConnectionId, message);
+            //}
+
+            //private void SendMessage(int gameId, string connectionId, string message)
+            //{
+            //    Clients.Client(connectionId).sendMessage(message);
+            //}
+        }
 }
