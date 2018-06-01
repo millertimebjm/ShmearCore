@@ -238,7 +238,7 @@
                 var playerCardId = 'player'.concat(playerIndex + 1).concat('card').concat(i + 1);
                 var playerCardAnchorId = playerCardId.concat('anchor');
                 //console.log('#player'.concat(playerIndex + 1).concat('card').concat(i + 1));
-                $('#'.concat(playerCardId)).html('<a id="' + playerCardAnchorId + '" href="#">'.concat("<img src='/Content/Cards/" + cardString + ".png' width='100' height='144'>").concat('</a>&nbsp;'));
+                $('#'.concat(playerCardId)).html('<a id="' + playerCardAnchorId + '" href="#">'.concat("<img src='/images/Cards/" + cardString + ".png' width='100' height='144'>").concat('</a>&nbsp;'));
                 console.log(playerCardAnchorId.concat(' ').concat(cardId));
 
                 $('#'.concat(playerCardAnchorId)).click(function () {
