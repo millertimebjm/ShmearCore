@@ -244,7 +244,8 @@
                 $('#'.concat(playerCardAnchorId)).click(function () {
                     console.log($(this).attr('id').charAt(11));
                     console.log(handCardIds[$(this).attr('id').charAt(11)]);
-                    connection.on("PlayCard", gameId, handCardIds[$(this).attr('id').charAt(11) - 1]);
+                    console.log("PlayCard is being called on from the Client");
+                    connection.invoke("PlayCard", gameId, handCardIds[$(this).attr('id').charAt(11) - 1]);
                 });
             };
 
@@ -287,7 +288,16 @@
                 }
             }
         });
-        
+
+        connection.on("SendMessage", (message) => {
+            $('#messages').html('<p>'.concat(message).concat('</p>').concat($('#messages').html()));
+        });
+
+        $('#wager0link').click(function () {
+            //shmearHub.server.setWager(gameId, $('#wager0').text());
+            connection.invoke("SetWager", gameId, $('#wager0').text());
+        });
+
         $('#ready').click(function () {
             //shmearHub.server.togglePlayerReadyStatus(gameId);
             connection.invoke("TogglePlayerReadyStatus", gameId);
@@ -366,7 +376,18 @@
             });
         };
 
-        
+        for (i = 0; i < 4; i++) {
+            wagers[i].click(function () {
+                console.log("SetWager being called from Client");
+                connection.invoke("SetWager", gameId, $(this).text());
+            });
+        }
+
+        $('#sendMessageButton').click(function () {
+            //shmearHub.server.sendChat(gameId, $('#playerMessage').val());
+            connection.on("SendChat", gameId, $('#playerMessage').val());
+            $('#playerMessage').val('');
+        });
     });
 </script>
 
@@ -405,36 +426,16 @@
         shmearHub = $.connection.shmearHub;
         wagers = [$('#wager2link'), $('#wager3link'), $('#wager4link'), $('#wager5link')];
 
-        $('#sendMessageButton').click(function () {
-            shmearHub.server.sendChat(gameId, $('#playerMessage').val());
-            $('#playerMessage').val('');
-        });
+        
 
-        $('#wager0link').click(function () {
-            shmearHub.server.setWager(gameId, $('#wager0').text());
-        });
-
-        for (i = 0; i < 4; i++) {
-            wagers[i].click(function () {
-                shmearHub.server.setWager(gameId, $(this).text());
-            });
-        }
+        
 
         shmearHub.client.logoutPlayer = function (message) {
             //window.location.replace(document.location.host + '/?');//message=');//+ fixedEncodeURIComponent(message))
             window.location.replace('http://' + document.location.host + '/');
         };
 
-
         
-
-        
-
-
-
-        shmearHub.client.sendMessage = function (message) {
-            $('#messages').html('<p>'.concat(message).concat('</p>').concat($('#messages').html()));
-        };
 
         $('#leave').click(function () {
             shmearHub.server.leaveSeat(gameId);

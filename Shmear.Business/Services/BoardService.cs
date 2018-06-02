@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shmear.Business.Models;
 using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
 using System;
 using System.Collections.Generic;
@@ -184,6 +185,251 @@ namespace Shmear.Business.Services
 
             var nextPlayer = gamePlayers[(gamePlayers.FindIndex(_ => _.PlayerId == trickStartingPlayer) + trick.TrickCard.Count()) % 4];
             return nextPlayer;
+        }
+
+        public static async Task SetWager(int gameId, int playerId, int wager)
+        {
+            var gamePlayer = await GameService.GetGamePlayer(gameId, playerId);
+            gamePlayer.Wager = wager;
+            await GameService.SaveGamePlayer(gamePlayer);
+        }
+
+        public static async Task<RoundResult> EndRound(int gameId)
+        {
+            var roundResult = await BoardService.DeterminePointsByTeam(gameId);
+            return roundResult;
+        }
+
+        public static async Task<RoundResult> DeterminePointsByTeam(int gameId)
+        {
+            var pointList = new List<Point>();
+            //var team1Points = 0;
+            //var team1Result = 0;
+            //var team2Points = 0;
+            //var team2Result = 0;
+            var team1PlayerSeats = new[]
+            {
+                1,
+                3
+            };
+            var team2PlayerSeats = new[]
+            {
+                2,
+                4
+            };
+
+            using (var db = new CardContext())
+            {
+                var board = await db.Board.SingleAsync(_ => _.GameId == gameId);
+                var gamePlayers = db.GamePlayer.Where(_ => _.GameId == gameId);
+                var tricks = db.Trick.Where(_ => _.GameId == gameId);
+
+                var highCard = db.TrickCard.Where(_ => _.Trick.GameId == gameId).Select(_ => _.Card).Where(_ => _.SuitId == board.TrumpSuitId).OrderByDescending(_ => _.Value.Sequence).First();
+                var highTrick = tricks.Single(_ => _.TrickCard.Any(card => card.Card.SuitId.Equals(board.TrumpSuitId) && card.Card.Value.Id == highCard.ValueId));
+                var highTrickSeatNumber = (await gamePlayers.SingleAsync(_ => _.PlayerId == highTrick.WinningPlayerId)).SeatNumber;
+                if (team1PlayerSeats.Contains(highTrickSeatNumber))
+                    //team1Points++;
+                    pointList.Add(new Point()
+                    {
+                        Team = 1,
+                        PointType = PointTypeEnum.High,
+                    });
+                if (team2PlayerSeats.Contains(highTrickSeatNumber))
+                    //team2Points++;
+                    pointList.Add(new Point()
+                    {
+                        Team = 2,
+                        PointType = PointTypeEnum.High,
+                    });
+
+                var jackTrick = tricks.SingleOrDefault(_ => _.TrickCard.Any(card => card.Card.SuitId.Equals(board.TrumpSuitId) && card.Card.Value.Name.Equals(CardService.ValueEnum.Jack.ToString())));
+                if (jackTrick != null)
+                {
+                    var point = GetJackPoint(gamePlayers, jackTrick, team1PlayerSeats, team2PlayerSeats);
+                    pointList.Add(point);
+                }
+
+                var jokerTrick = tricks.SingleOrDefault(_ => _.TrickCard.Any(card => card.Card.Value.Name.Equals(CardService.ValueEnum.Joker.ToString())));
+                if (jokerTrick != null)
+                {
+                    var jokerTrickSeatNumber = gamePlayers.Single(_ => _.PlayerId == jokerTrick.WinningPlayerId).SeatNumber;
+                    if (team1PlayerSeats.Contains(jokerTrickSeatNumber))
+                        //team1Points++;
+                        pointList.Add(new Point()
+                        {
+                            Team = 1,
+                            PointType = PointTypeEnum.Joker,
+                        });
+                    if (team2PlayerSeats.Contains(jokerTrickSeatNumber))
+                        pointList.Add(new Point()
+                        {
+                            Team = 2,
+                            PointType = PointTypeEnum.Joker,
+                        });
+                }
+
+                var lowCard = db.TrickCard.Where(_ => _.Trick.GameId == gameId).Select(_ => _.Card).Where(_ => _.SuitId == board.TrumpSuitId).OrderBy(_ => _.Value.Sequence).First();
+                var lowPlayerId = db.TrickCard.Single(_ => _.Trick.GameId == gameId && _.CardId == lowCard.Id).Player.Id;
+                var lowPlayerSeatNumber = gamePlayers.Single(_ => _.PlayerId == lowPlayerId).SeatNumber;
+                if (team1PlayerSeats.Contains(lowPlayerSeatNumber))
+                    //team1Points++;
+                    pointList.Add(new Point()
+                    {
+                        Team = 1,
+                        PointType = PointTypeEnum.Low,
+                    });
+                if (team2PlayerSeats.Contains(lowPlayerSeatNumber))
+                    //team2Points++;
+                    pointList.Add(new Point()
+                    {
+                        Team = 2,
+                        PointType = PointTypeEnum.Low,
+                    });
+
+                var team1RoundCardScore = 0;
+                var team2RoundCardScore = 0;
+                foreach (var gamePlayer in gamePlayers)
+                {
+                    var points = 0;
+                    var winningTricks = db.TrickCard.Where(_ => _.Trick.GameId == gameId && _.Trick.WinningPlayerId == gamePlayer.PlayerId).Select(_ => _.Card.Value.Points).ToList();
+                    if (winningTricks.Any())
+                        points = winningTricks.Sum();
+                    if (team1PlayerSeats.Contains(gamePlayer.SeatNumber))
+                        team1RoundCardScore += points;
+                    if (team2PlayerSeats.Contains(gamePlayer.SeatNumber))
+                        team2RoundCardScore += points;
+                }
+
+                var wagerSeat = gamePlayers.OrderByDescending(_ => _.Wager).First().SeatNumber;
+                if (team1RoundCardScore > team2RoundCardScore)
+                {
+                    //team1Points++;
+                    pointList.Add(new Point()
+                    {
+                        Team = 1,
+                        PointType = PointTypeEnum.Game,
+                        OtherData = $" [{team1RoundCardScore} - {team2RoundCardScore}]",
+                    });
+                }
+                else if (team1RoundCardScore < team2RoundCardScore)
+                {
+                    //team2Points++;
+                    pointList.Add(new Point()
+                    {
+                        Team = 2,
+                        PointType = PointTypeEnum.Game,
+                        OtherData = $" [{team2RoundCardScore} - {team1RoundCardScore}]",
+                    });
+                }
+
+                var roundResult = new RoundResult();
+
+                //var bust = 0;
+                //team1Result = team1Points;
+                roundResult.Team1Points = pointList.Where(_ => _.Team == 1);
+                roundResult.Team1RoundChange = roundResult.Team1Points.Count();
+                if ((board.Team1Wager ?? 0) > 0 && board.Team1Wager > roundResult.Team1RoundChange)
+                {
+                    //team1Result = -(int) board.Team1Wager;
+                    roundResult.Team1RoundChange = -(int)board.Team1Wager;
+                    //bust = 1;
+                    roundResult.Bust = true;
+                }
+
+                //team2Result = team2Points;
+                roundResult.Team2Points = pointList.Where(_ => _.Team == 2);
+                roundResult.Team2RoundChange = roundResult.Team2Points.Count();
+                if ((board.Team2Wager ?? 0) > 0 && board.Team2Wager > roundResult.Team2RoundChange)
+                {
+                    //team2Result = -(int) board.Team2Wager;
+                    roundResult.Team2RoundChange = -(int)board.Team2Wager;
+                    //bust = 1;
+                    roundResult.Bust = true;
+                }
+
+                roundResult.TeamWager = board.Team1Wager > 0 ? 1 : board.Team2Wager > 0 ? 2 : 0;
+                roundResult.TeamWagerValue = Math.Max(board.Team1Wager ?? 0, board.Team2Wager ?? 0);
+
+                return roundResult;
+            }
+        }
+
+        private static Point GetJackPoint(IEnumerable<GamePlayer> gamePlayers, Trick jackTrick, int[] team1PlayerSeats, int[] team2PlayerSeats)
+        {
+            var jackTrickSeatNumber = gamePlayers.Single(_ => _.PlayerId == jackTrick.WinningPlayerId).SeatNumber;
+            if (team1PlayerSeats.Contains(jackTrickSeatNumber))
+                //team1Points++;
+                return new Point()
+                {
+                    Team = 1,
+                    PointType = PointTypeEnum.Jack,
+                };
+            if (team2PlayerSeats.Contains(jackTrickSeatNumber))
+                //team2Points++;
+                return new Point()
+                {
+                    Team = 2,
+                    PointType = PointTypeEnum.Jack,
+                };
+            return null;
+        }
+
+        public static int DetermineWinningPlayerId(int gameId, IEnumerable<TrickCard> trickCards)
+        {
+            using (var db = new CardContext())
+            {
+                var trumpSuitId = (int)db.Board.Single(_ => _.GameId == gameId).TrumpSuitId;
+                trickCards = trickCards.OrderBy(_ => _.Sequence);
+                var suitLed = trickCards.First();
+                var highestCard = false;
+                var jokerId = db.Card.Single(_ => _.ValueId == CardService.GetCard(CardService.SuitEnum.None, CardService.ValueEnum.Joker).ValueId).Id;
+
+                var cardTemp = trickCards.First();
+                do
+                {
+                    int index = 0;
+                    foreach (var card in trickCards)
+                    {
+                        if (CompareCards(trumpSuitId, suitLed.Card.SuitId, jokerId, cardTemp.Card, card.Card) < 0)
+                        {
+                            cardTemp = card;
+                            break;
+                        }
+                        index++;
+                    }
+                    if (index == 4)
+                        highestCard = true;
+                } while (!highestCard);
+
+                return cardTemp.PlayerId;
+            }
+        }
+
+        public static int CompareCards(int trumpSuitId, int suitLedId, int jokerId, Card card1, Card card2)
+        {
+            if ((card1.SuitId == trumpSuitId || card1.Id == jokerId) && card2.SuitId != trumpSuitId && card2.Id != jokerId)
+                return 1;
+            if (card1.SuitId != trumpSuitId && card1.Id != jokerId && (card2.SuitId == trumpSuitId || card2.Id == jokerId))
+                return -1;
+            if ((card1.SuitId == trumpSuitId || card1.Id == jokerId) && (card2.SuitId == trumpSuitId || card2.Id == jokerId))
+                return CompareValues(card1, card2);
+            if (card1.SuitId == suitLedId && card2.SuitId != suitLedId)
+                return 1;
+            if (card1.SuitId != suitLedId && card2.SuitId == suitLedId)
+                return -1;
+            return CompareValues(card1, card2);
+        }
+
+        public static int CompareValues(Card card1, Card card2)
+        {
+            var card1Value = (int)Enum.Parse(typeof(CardService.ValueEnum), card1.Value.Name);
+            var card2Value = (int)Enum.Parse(typeof(CardService.ValueEnum), card2.Value.Name);
+            if (card1Value > card2Value)
+                return 1;
+            else if (card1Value < card2Value)
+                return -1;
+            else //if (card1Value == card2Value)
+                return 0;
         }
     }
 }

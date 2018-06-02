@@ -2,6 +2,7 @@
 using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,11 +40,19 @@ namespace Shmear.Business.Services
             }
         }
 
-        public static async Task<Card> GetCard(int id)
+        public static async Task<Card> GetCardAsync(int id)
         {
             using (var db = new CardContext())
             {
                 return await db.Card.Include(_ => _.Suit).Include(_ => _.Value).SingleAsync(_ => _.Id == id);
+            }
+        }
+
+        public static Card GetCard(int id)
+        {
+            using (var db = new CardContext())
+            {
+                return db.Card.Include(_ => _.Suit).Include(_ => _.Value).Single(_ => _.Id == id);
             }
         }
 
@@ -57,13 +66,13 @@ namespace Shmear.Business.Services
 
 
 
-        //public static Card GetCard(SuitEnum suit, ValueEnum value)
-        //{
-        //    using (var db = new ShmearDataContext())
-        //    {
-        //        return db.Cards.Single(_ => _.Suit.Name == suit.ToString() && _.Value.Name == value.ToString());
-        //    }
-        //}
+        public static Card GetCard(SuitEnum suit, ValueEnum value)
+        {
+            using (var db = new CardContext())
+            {
+                return db.Card.Single(_ => _.Suit.Name == suit.ToString() && _.Value.Name == value.ToString());
+            }
+        }
 
         //public static bool SeedSuits()
         //{

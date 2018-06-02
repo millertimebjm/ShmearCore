@@ -172,5 +172,90 @@ namespace Shmear.Business.Services
                 return await db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => _.Player).ToListAsync();
             }
         }
+
+        public static async Task<IEnumerable<Player>> GetPlayersByGame(int gameId)
+        {
+            using (var db = new CardContext())
+            {
+                return await db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => _.Player).ToListAsync();
+            }
+        }
+
+        public static async Task<bool> ValidCardPlay(int gameId, int boardId, int playerId, int cardId)
+        {
+            using (var db = new CardContext())
+            {
+                var game = await db.Game.SingleAsync(_ => _.Id == gameId);
+                var players = await GameService.GetPlayersByGame(game.Id);
+                var player = players.Single(_ => _.Id == playerId);
+                var cards = await HandService.GetHand(gameId, player.Id);
+                var tricks = await TrickService.GetTricks(game.Id);
+                var trick = tricks.SingleOrDefault(_ => _.CompletedDate == null);
+                if (trick == null || trick.Id == 0)
+                {
+                    trick = await TrickService.CreateTrick(game.Id);
+                }
+
+                var board = await BoardService.GetBoard(boardId);
+                var trumpSuitId = board.TrumpSuitId ?? 0;
+                var card = await CardService.GetCardAsync(cardId);
+
+                //if (!cards.Select(_ => _.CardId).Contains(card.Id))
+                //    throw new Exception("Player does not have that card in their hand.");
+
+                if (trumpSuitId == 0)
+                {
+                    if (card.Value.Name == CardService.ValueEnum.Joker.ToString())
+                        return false;
+
+                    return true;
+                }
+                else
+                {
+                    if (trick.TrickCard.Any())
+                    {
+                        var cardLed = (await CardService.GetCardAsync(trick.TrickCard.First().CardId));
+                        var suitLedId = cardLed.SuitId;
+                        if (card.SuitId == trumpSuitId)
+                            return true;
+                        if (card.Value.Name == CardService.ValueEnum.Joker.ToString())
+                            return true;
+                        if (suitLedId == card.SuitId)
+                            return true;
+                        if (cards.All(_ => CardService.GetCard(_.Card.Id).SuitId != suitLedId)
+                            && cards.All(_ => CardService.GetCard(_.Card.Id).Value.Name != CardService.ValueEnum.Joker.ToString()))
+                            return true;
+
+                        return false;
+                    }
+                    else
+                        return true;
+                }
+            }
+        }
+
+        public static async Task<Game> SaveGame(Game game)
+        {
+            using (var db = new CardContext())
+            {
+                if (game.Id == 0)
+                {
+                    game.Team1Points = 0;
+                    game.Team2Points = 0;
+                    game.CreatedDate = DateTime.Now;
+                    game.StartedDate = null;
+                    await db.Game.AddAsync(game);
+                }
+                else
+                {
+                    var gameTemp = await db.Game.SingleAsync(_ => _.Id == game.Id);
+                    gameTemp.Team1Points = game.Team1Points;
+                    gameTemp.Team2Points = game.Team2Points;
+                }
+
+                await db.SaveChangesAsync();
+            }
+            return game;
+        }
     }
 }
