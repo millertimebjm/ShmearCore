@@ -286,7 +286,8 @@ namespace Shmear.Web.Hubs
                     if (trick.TrickCard.Count() == 4)
                     {
                         trick = await TrickService.EndTrick(trick.Id);
-                        var winningPlayer = await PlayerService.GetPlayer((int)trick.WinningPlayerId);
+                        var winningPlayerId = trick.WinningPlayerId;
+                        var winningPlayer = await PlayerService.GetPlayer((int)winningPlayerId);
                         var trickString = string.Empty;
                         foreach (var trickCard in trick.TrickCard)
                         {

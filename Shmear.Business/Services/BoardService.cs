@@ -381,16 +381,18 @@ namespace Shmear.Business.Services
                 var trumpSuitId = (int)db.Board.Single(_ => _.GameId == gameId).TrumpSuitId;
                 trickCards = trickCards.OrderBy(_ => _.Sequence);
                 var suitLed = trickCards.First();
+                var suitLedCard = CardService.GetCard(trickCards.First().CardId);
                 var highestCard = false;
                 var jokerId = db.Card.Single(_ => _.ValueId == CardService.GetCard(CardService.SuitEnum.None, CardService.ValueEnum.Joker).ValueId).Id;
 
-                var cardTemp = trickCards.First();
+                var cardTemp = CardService.GetCard(trickCards.First().CardId);
                 do
                 {
                     int index = 0;
-                    foreach (var card in trickCards)
+                    foreach (var trickCard in trickCards)
                     {
-                        if (CompareCards(trumpSuitId, suitLed.Card.SuitId, jokerId, cardTemp.Card, card.Card) < 0)
+                        var card = CardService.GetCard(trickCard.CardId);
+                        if (CompareCards(trumpSuitId, suitLedCard.SuitId, jokerId, cardTemp, card) < 0)
                         {
                             cardTemp = card;
                             break;
@@ -400,8 +402,8 @@ namespace Shmear.Business.Services
                     if (index == 4)
                         highestCard = true;
                 } while (!highestCard);
-
-                return cardTemp.PlayerId;
+                
+                return trickCards.Single(_ => _.CardId == cardTemp.Id).PlayerId;
             }
         }
 

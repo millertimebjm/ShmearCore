@@ -22,8 +22,13 @@ namespace Shmear.Business.Services
         {
             using (var db = new CardContext())
             {
-                return await db.Trick.Include(_ => _.TrickCard).SingleAsync(_ => _.Id == trickId);
+                return await GetTrick(db, trickId);
             }
+        }
+
+        public static async Task<Trick> GetTrick(CardContext db, int trickId)
+        {
+            return await db.Trick.Include(_ => _.TrickCard).SingleAsync(_ => _.Id == trickId);
         }
 
         public static async Task<Trick> CreateTrick(int gameId)
@@ -47,7 +52,7 @@ namespace Shmear.Business.Services
         {
             using (var db = new CardContext())
             {
-                var trick = await db.Trick.SingleAsync(_ => _.Id == trickId);
+                var trick = await GetTrick(db, trickId);
                 trick.CompletedDate = DateTime.Now;
                 trick.WinningPlayerId = BoardService.DetermineWinningPlayerId(trick.GameId, trick.TrickCard);
                 await db.SaveChangesAsync();
