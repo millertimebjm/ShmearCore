@@ -246,7 +246,9 @@ namespace Shmear.Web.Hubs
 
                 var board = await BoardService.GetBoardByGameId(gameId);
                 gamePlayers = (await GameService.GetGamePlayers(gameId)).OrderBy(_ => _.SeatNumber).ToArray();
-                if (gamePlayers.Count(_ => _.Wager != null) == 4)
+
+                // if all players have wagered or any player wagered 5
+                if (gamePlayers.All(_ => _.Wager != null) || gamePlayers.Any(_ => _.Wager == 5))
                 {
                     var maxWagerPlayer = gamePlayers.Single(_ => _.Wager == (int)gamePlayers.Max(gp => gp.Wager));
                     board.Team1Wager = 0;
@@ -305,10 +307,10 @@ namespace Shmear.Web.Hubs
                             game.Team2Points += roundResult.Team2RoundChange;
                             await GameService.SaveGame(game);
 
-                            string s1 = roundResult.Team1RoundChange == 1 ? "s" : "";
+                            string s1 = roundResult.Team1RoundChange == 1 ? "" : "s";
                             await SendMessage(gameId, string.Format($"<p>Team 1 {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
 
-                            string s2 = roundResult.Team2RoundChange == 1 ? "s" : "";
+                            string s2 = roundResult.Team2RoundChange == 1 ? "" : "s";
                             await SendMessage(gameId, string.Format($"<p>Team 2 {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
 
                             TrickService.ClearTricks(gameId);

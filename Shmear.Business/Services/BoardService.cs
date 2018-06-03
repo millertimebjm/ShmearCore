@@ -222,9 +222,15 @@ namespace Shmear.Business.Services
             {
                 var board = await db.Board.SingleAsync(_ => _.GameId == gameId);
                 var gamePlayers = db.GamePlayer.Where(_ => _.GameId == gameId);
-                var tricks = db.Trick.Where(_ => _.GameId == gameId);
 
-                var highCard = db.TrickCard.Where(_ => _.Trick.GameId == gameId).Select(_ => _.Card).Where(_ => _.SuitId == board.TrumpSuitId).OrderByDescending(_ => _.Value.Sequence).First();
+                // How multiple Includes and sub-ThenIncludes work:
+                // https://github.com/aspnet/EntityFrameworkCore/issues/4716
+                var tricks = db.Trick
+                    .Include(_ => _.TrickCard).ThenInclude(_ => _.Card).ThenInclude(_ => _.Suit)
+                    .Include(_ => _.TrickCard).ThenInclude(_ => _.Card).ThenInclude(_ => _.Value)
+                    .Where(_ => _.GameId == gameId);
+
+                var highCard = tricks.SelectMany(_ => _.TrickCard).Where(_ => _.Trick.GameId == gameId).Select(_ => _.Card).Where(_ => _.SuitId == board.TrumpSuitId).OrderByDescending(_ => _.Value.Sequence).First();
                 var highTrick = tricks.Single(_ => _.TrickCard.Any(card => card.Card.SuitId.Equals(board.TrumpSuitId) && card.Card.Value.Id == highCard.ValueId));
                 var highTrickSeatNumber = (await gamePlayers.SingleAsync(_ => _.PlayerId == highTrick.WinningPlayerId)).SeatNumber;
                 if (team1PlayerSeats.Contains(highTrickSeatNumber))
@@ -268,8 +274,8 @@ namespace Shmear.Business.Services
                         });
                 }
 
-                var lowCard = db.TrickCard.Where(_ => _.Trick.GameId == gameId).Select(_ => _.Card).Where(_ => _.SuitId == board.TrumpSuitId).OrderBy(_ => _.Value.Sequence).First();
-                var lowPlayerId = db.TrickCard.Single(_ => _.Trick.GameId == gameId && _.CardId == lowCard.Id).Player.Id;
+                var lowCard = tricks.SelectMany(_ => _.TrickCard).Select(_ => _.Card).Where(_ => _.SuitId == board.TrumpSuitId).OrderBy(_ => _.Value.Sequence).First();
+                var lowPlayerId = tricks.SelectMany(_ => _.TrickCard).Single(_ => _.CardId == lowCard.Id).PlayerId;
                 var lowPlayerSeatNumber = gamePlayers.Single(_ => _.PlayerId == lowPlayerId).SeatNumber;
                 if (team1PlayerSeats.Contains(lowPlayerSeatNumber))
                     //team1Points++;
@@ -291,7 +297,7 @@ namespace Shmear.Business.Services
                 foreach (var gamePlayer in gamePlayers)
                 {
                     var points = 0;
-                    var winningTricks = db.TrickCard.Where(_ => _.Trick.GameId == gameId && _.Trick.WinningPlayerId == gamePlayer.PlayerId).Select(_ => _.Card.Value.Points).ToList();
+                    var winningTricks = tricks.SelectMany(_ => _.TrickCard).Where(_ => _.Trick.GameId == gameId && _.Trick.WinningPlayerId == gamePlayer.PlayerId).Select(_ => _.Card.Value.Points).ToList();
                     if (winningTricks.Any())
                         points = winningTricks.Sum();
                     if (team1PlayerSeats.Contains(gamePlayer.SeatNumber))
