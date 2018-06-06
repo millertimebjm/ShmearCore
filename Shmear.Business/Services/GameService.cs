@@ -55,11 +55,11 @@ namespace Shmear.Business.Services
         {
             using (var db = new CardContext())
             {
-                var gamePlayers = await db.GamePlayer.Where(_ => _.GameId == gameId).ToListAsync();
-                foreach (var gamePlayer in gamePlayers)
-                {
-                    gamePlayer.Player = await db.Player.FindAsync(gamePlayer.PlayerId);
-                }
+                var gamePlayers = await db.GamePlayer.Include(_ => _.Player).Where(_ => _.GameId == gameId).ToListAsync();
+                //foreach (var gamePlayer in gamePlayers)
+                //{
+                //    gamePlayer.Player = await db.Player.FindAsync(gamePlayer.PlayerId);
+                //}
                 return gamePlayers;
             }
         }
@@ -89,7 +89,7 @@ namespace Shmear.Business.Services
                     }
 
                     await db.GamePlayer.AddAsync(gamePlayer);
-                    (await db.Player.SingleAsync(_ => _.Id == playerId)).KeepAlive = DateTime.Now;
+                    player.KeepAlive = DateTime.Now;
                     await db.SaveChangesAsync();
                     return true;
                 }
@@ -102,14 +102,18 @@ namespace Shmear.Business.Services
         {
             using (var db = new CardContext())
             {
-                var game = await db.Game.Include(_ => _.GamePlayer).SingleAsync(_ => _.Id == gameId);
-                var player = await db.Player.SingleAsync(_ => _.Id == playerId);
+                //var game = await db.Game.Include(_ => _.GamePlayer).SingleAsync(_ => _.Id == gameId);
+                //var player = await db.Player.SingleAsync(_ => _.Id == playerId);
 
-                if (game.GamePlayer.Any(_ => _.PlayerId == playerId))
-                {
-                    db.GamePlayer.Remove(await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId));
-                    await db.SaveChangesAsync();
-                }
+                //if (game.GamePlayer.Any(_ => _.PlayerId == playerId))
+                //{
+                //    db.GamePlayer.Remove(await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId));
+                //    await db.SaveChangesAsync();
+                //}
+
+                var gamePlayer = await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
+                db.GamePlayer.Remove(gamePlayer);
+                await db.SaveChangesAsync();
                 return true;
             }
         }
@@ -155,7 +159,7 @@ namespace Shmear.Business.Services
                 if (game.StartedDate == null)
                 {
                     game.StartedDate = DateTime.Now;
-                        await db.SaveChangesAsync();
+                    await db.SaveChangesAsync();
                     return true;
                 }
                 else
@@ -185,15 +189,16 @@ namespace Shmear.Business.Services
         {
             using (var db = new CardContext())
             {
-                var game = await db.Game.SingleAsync(_ => _.Id == gameId);
-                var players = await GameService.GetPlayersByGame(game.Id);
-                var player = players.Single(_ => _.Id == playerId);
+                var gamePlayer = await db.GamePlayer.Include(_ => _.Player).SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
+                var player = gamePlayer.Player;
+
+                //var game = await db.Game.SingleAsync(_ => _.Id == gameId);
                 var cards = await HandService.GetHand(gameId, player.Id);
-                var tricks = await TrickService.GetTricks(game.Id);
+                var tricks = await TrickService.GetTricks(gameId);
                 var trick = tricks.SingleOrDefault(_ => _.CompletedDate == null);
                 if (trick == null || trick.Id == 0)
                 {
-                    trick = await TrickService.CreateTrick(game.Id);
+                    trick = await TrickService.CreateTrick(gameId);
                 }
 
                 var board = await BoardService.GetBoard(boardId);
