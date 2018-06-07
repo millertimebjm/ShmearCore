@@ -132,7 +132,6 @@ namespace Shmear.Web.Hubs
 
             var seats = await GetSeatsArray(game.Id);
             await Clients.All.SendAsync("ReceiveSeatStatuses", game.Id, seats);
-            //Clients.All.ReceiveSeatStatuses(game.Id, GetSeatsArray(game.Id));
         }
 
         public async Task LeaveSeat(int gameId)
@@ -196,7 +195,6 @@ namespace Shmear.Web.Hubs
                     var card = await CardService.GetCardAsync(handCard.CardId);
                     cards.Add(new string[] {
                         handCard.CardId.ToString(),
-                        //card.Suit.Char.ToString() + card.Value.Char.ToString()
                         card.Value.Name + card.Suit.Name,
                     });
                 }
@@ -215,9 +213,7 @@ namespace Shmear.Web.Hubs
                 for (var i = 0; i < 4; i++)
                 {
                     await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("HideWager");
-                    //await Clients.Client(gamePlayers[i].Player.ConnectionId).hideWager();
                     await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", gamePlayer.SeatNumber);
-                    //Clients.Client(gamePlayers[i].Player.ConnectionId).playerTurnUpdate(gamePlayer.SeatNumber);
                 }
             }
             else
@@ -228,9 +224,7 @@ namespace Shmear.Web.Hubs
                 for (var i = 0; i < 4; i++)
                 {
                     await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", gamePlayer.SeatNumber);
-                    //Clients.Client(gamePlayers[i].Player.ConnectionId).playerTurnUpdate(gamePlayer.SeatNumber);
                     await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("WagerUpdate", highestWager);
-                    //Clients.Client(gamePlayers[i].Player.ConnectionId).wagerUpdate(highestWager);
                 }
             }
         }
@@ -262,7 +256,7 @@ namespace Shmear.Web.Hubs
                 }
 
                 await SendCards(gameId);
-                SendMessage(gameId, player.Name + " wagered " + wager);
+                await SendMessage(gameId, player.Name + " wagered " + wager);
             }
         }
 
@@ -374,57 +368,5 @@ namespace Shmear.Web.Hubs
             if (gamePlayer != null)
                 await SendMessage(gameId, $"<b>{gamePlayer.Player.Name}:</b> {message}");
         }
-
-        //private void CheckStartGame(int gameId)
-        //{
-        //    var gamePlayers = GameService.GetGamePlayers(gameId);
-        //    if (gamePlayers.Count(_ => _.Ready) == 4)
-        //    {
-        //        if (GameService.StartGame(gameId))
-        //        {
-        //            BoardService.StartRound(gameId);
-        //            BoardService.DealCards(gameId);
-
-        //            SendCards(gameId);
-        //        }
-        //    }
-        //}
-
-
-        //public override Task OnConnected()
-        //{
-        //    string userName = Context.User.Identity.Name;
-        //    string connectionId = Context.ConnectionId;
-
-        //    var player = PlayerService.GetPlayer(connectionId);
-
-        //    if (player == null || player.Id == 0)
-        //    {
-        //        player = new Player()
-        //        {
-        //            ConnectionId = connectionId,
-        //            Name = userName
-        //        };
-        //    }
-
-        //    PlayerService.SavePlayer(player);
-
-        //    return base.OnConnected();
-        //}
-
-
-
-
-
-        //private void SendMessage(int gameId, int playerId, string message)
-        //{
-        //    var gamePlayer = GameService.GetGamePlayer(gameId, playerId);
-        //    SendMessage(gameId, gamePlayer.Player.ConnectionId, message);
-        //}
-
-        //private void SendMessage(int gameId, string connectionId, string message)
-        //{
-        //    Clients.Client(connectionId).sendMessage(message);
-        //}
     }
 }

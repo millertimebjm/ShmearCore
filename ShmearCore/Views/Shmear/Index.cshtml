@@ -209,6 +209,7 @@
         });
 
         connection.on("UpdatePlayerReadyStatus", (ready) => {
+            console.log("UpdatePlayerReadyStatus being called from Server");
             $('#ready').removeClass('btn-default');
             $('#ready').removeClass('btn-success');
             if (ready) {
@@ -237,7 +238,6 @@
                 var cardString = card[1];
                 var playerCardId = 'player'.concat(playerIndex + 1).concat('card').concat(i + 1);
                 var playerCardAnchorId = playerCardId.concat('anchor');
-                //console.log('#player'.concat(playerIndex + 1).concat('card').concat(i + 1));
                 $('#'.concat(playerCardId)).html('<a id="' + playerCardAnchorId + '" href="#">'.concat("<img src='/images/Cards/" + cardString + ".png' width='100' height='144'>").concat('</a>&nbsp;'));
                 console.log(playerCardAnchorId.concat(' ').concat(cardId));
 
@@ -251,7 +251,6 @@
 
             for (i = 0; i < 4; i++) {
                 if (!(i === playerIndex)) {
-                    //console.log('#player'.concat(j+1).concat('card').concat(1));
                     $('#player'.concat(i + 1).concat('card').concat(1)).text(cardCountBySeat[i]);
                 }
             }
@@ -260,6 +259,7 @@
         })
 
         connection.on("HideWager", () => {
+            console.log("HideWager being called from Server");
             $('#wager0').hide();
             for (i = 0; i < 4; i++) {
                 wagers[i].hide();
@@ -267,8 +267,8 @@
         });
 
         connection.on("PlayerTurnUpdate", (playerSeatTurn) => {
+            console.log("PlayerTurnUpdate being called from Server");
             for (i = 1; i < 5; i++) {
-                //console.log('#player'.concat(i).concat('arrow'));
                 if (playerSeatTurn === i) {
                     $('#player'.concat(i).concat('arrow')).show();
                 } else {
@@ -277,7 +277,8 @@
             }
         });
 
-        connection.on("WagerUpdate", (highestWagerInput) => { 
+        connection.on("WagerUpdate", (highestWagerInput) => {
+            console.log("WagerUpdate being called from Server");
             $('#wager0').show();
             highestWager = highestWagerInput;
             for (i = 0; i < 4; i++) {
@@ -295,18 +296,17 @@
         });
 
         $('#wager0link').click(function () {
-            //shmearHub.server.setWager(gameId, $('#wager0').text());
+            console.log("SetWager being called from Client");
             connection.invoke("SetWager", gameId, $('#wager0').text());
         });
 
         $('#ready').click(function () {
-            //shmearHub.server.togglePlayerReadyStatus(gameId);
+            console.log("TogglePlayerReadyStatus being called from Client");
             connection.invoke("TogglePlayerReadyStatus", gameId);
         });
 
         function seatButtonUpdate() {
             for (var i = 0; i < 4; i++) {
-                //console.log(seats[i]);
                 buttons[i].removeClass('btn-primary');
                 buttons[i].removeClass('btn-default');
                 buttons[i].removeClass('btn-success');
@@ -317,11 +317,9 @@
                 }
                 if (seats[i] === name) {
                     buttons[i].addClass('btn-success');
-                    //buttons[i].data(name);
                 }
                 if (!(seats[i] === name) && !(seats[i] === '')) {
                     buttons[i].addClass('btn-default');
-                    //buttons[i].data(seats[i]);
                 }
             }
 
@@ -356,7 +354,6 @@
         };
 
         $('#leave').click(function () {
-            //shmearHub.server.leaveSeat(gameId);
             console.log("Calling the LeaveSeat function from Client");
             connection.invoke("LeaveSeat", gameId);
             $('#ready').hide();
@@ -366,14 +363,11 @@
 
         for (var i = 0; i < 4; i++) {
             buttons[i].click(function () {
-                //console.log('Trying to sit at ' + $(this).val() + ', connection ID=' + $.connection.hub.id);
                 console.log("SetSeatStatus being called from Client");
                 var promise = connection.invoke("SetSeatStatus", gameId, $(this).val());
                 promise.then(function () {
                     readyButtonUpdate();
                 });
-
-                //console.log('After to sit, connection ID=' + $.connection.hub.id);
             });
         };
 
@@ -385,110 +379,9 @@
         }
 
         $('#sendMessageButton').click(function () {
-            //shmearHub.server.sendChat(gameId, $('#playerMessage').val());
             console.log("SendChat being called from Client");
             connection.invoke("SendChat", gameId, $('#playerMessage').val());
             $('#playerMessage').val('');
         });
     });
 </script>
-
-@*<script>
-    var seats = ['', '', '', ''];
-    var buttons;
-    var shmearHub;
-    var gameId = 0;
-    var gameStarted = false;
-    var highestWager = 0;
-    var i = 0;
-    var handCardIds = ['', '', '', '', '', ''];
-
-    function fixedEncodeURIComponent(str) {
-        return encodeURIComponent(str).replace(/[!'()]/g, escape).replace(/\*/g, "%2A");
-    }
-
-    function getParameterByName(name) {
-        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-            results = regex.exec(location.search);
-        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-    }
-
-    function updateSeats() {
-        for (i = 0; i < 4; i++) {
-            seats[i] = shmearHub.server.getSeatStatusByIndex(i);
-            //console.log(seats[i]);
-        }
-    }
-
-    $().ready(function () {
-        name = '@Model.Name';
-        buttons = [$('#seat1'), $('#seat2'), $('#seat3'), $('#seat4')];
-        console.log($.connection);
-        shmearHub = $.connection.shmearHub;
-        wagers = [$('#wager2link'), $('#wager3link'), $('#wager4link'), $('#wager5link')];
-
-        
-
-        
-
-        shmearHub.client.logoutPlayer = function (message) {
-            //window.location.replace(document.location.host + '/?');//message=');//+ fixedEncodeURIComponent(message))
-            window.location.replace('http://' + document.location.host + '/');
-        };
-
-        
-
-        $('#leave').click(function () {
-            shmearHub.server.leaveSeat(gameId);
-            $('#ready').hide();
-            $('#cardDiv').hide();
-            $('#seatDiv').show();
-        });
-
-        $.connection.hub.start().done(function () {
-            //console.log('Now connected, connection ID=' + $.connection.hub.id);
-            shmearHub.server.setPlayerName(getParameterByName('name'));
-        }).fail(function () { console.log('Could not Connect!'); });
-    });
-
-    function seatButtonUpdate() {
-        for (var i = 0; i < 4; i++) {
-            //console.log(seats[i]);
-            buttons[i].removeClass('btn-primary');
-            buttons[i].removeClass('btn-default');
-            buttons[i].removeClass('btn-success');
-            buttons[i].text(seats[i]);
-            if (seats[i] === '') {
-                buttons[i].addClass('btn-primary');
-                buttons[i].text(i + 1);
-            }
-            if (seats[i] === name) {
-                buttons[i].addClass('btn-success');
-                //buttons[i].data(name);
-            }
-            if (!(seats[i] === name) && !(seats[i] === '')) {
-                buttons[i].addClass('btn-default');
-                //buttons[i].data(seats[i]);
-            }
-        }
-
-        for (var i = 0; i < 4; i++) {
-            if (!(seats[i] === '')) {
-                break;
-            }
-            if (i === 3) {
-                $('ready').show();
-                return;
-            }
-        };
-
-        for (var i = 0; i < 4; i++) {
-            if (!(seats[i] === '')) {
-                $('#player'.concat(i + 1)).text(seats[i]);
-            }
-        };
-
-        $('ready').hide();
-    };
-</script>*@
