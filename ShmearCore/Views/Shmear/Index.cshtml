@@ -290,6 +290,7 @@
         });
 
         connection.on("SendMessage", (message) => {
+            console.log("SendMessage being called from Server");
             $('#messages').html('<p>'.concat(message).concat('</p>').concat($('#messages').html()));
         });
 
@@ -385,7 +386,8 @@
 
         $('#sendMessageButton').click(function () {
             //shmearHub.server.sendChat(gameId, $('#playerMessage').val());
-            connection.on("SendChat", gameId, $('#playerMessage').val());
+            console.log("SendChat being called from Client");
+            connection.invoke("SendChat", gameId, $('#playerMessage').val());
             $('#playerMessage').val('');
         });
     });

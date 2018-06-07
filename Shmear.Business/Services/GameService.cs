@@ -122,8 +122,17 @@ namespace Shmear.Business.Services
         {
             using (var db = new CardContext())
             {
+                //var game = await db.Game.SingleAsync(_ => _.Id == gameId);
+                return await db.GamePlayer.Include(_ => _.Player).SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
+            }
+        }
+
+        public async static Task<GamePlayer> GetGamePlayer(int gameId, string connectionId)
+        {
+            using (var db = new CardContext())
+            {
                 var game = await db.Game.SingleAsync(_ => _.Id == gameId);
-                return await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
+                return await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.Player.ConnectionId == connectionId);
             }
         }
 

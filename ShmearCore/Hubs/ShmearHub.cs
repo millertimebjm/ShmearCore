@@ -262,7 +262,7 @@ namespace Shmear.Web.Hubs
                 }
 
                 await SendCards(gameId);
-                await SendMessage(gameId, player.Name + " wagered " + wager);
+                SendMessage(gameId, player.Name + " wagered " + wager);
             }
         }
 
@@ -285,43 +285,57 @@ namespace Shmear.Web.Hubs
                 {
                     trick = await TrickService.PlayCard(trick.Id, player.Id, cardId);
                     await SendMessage(gameId, "<p>" + player.Name + " played " + card.Suit.Char + card.Value.Char + "</p>");
+
+                    // Check to see if the Trick is over
                     if (trick.TrickCard.Count() == 4)
                     {
-                        trick = await TrickService.EndTrick(trick.Id);
-                        var winningPlayerId = trick.WinningPlayerId;
-                        var winningPlayer = await PlayerService.GetPlayer((int)winningPlayerId);
-                        var trickString = string.Empty;
-                        foreach (var trickCard in trick.TrickCard)
-                        {
-                            var cardInTrick = await CardService.GetCardAsync(trickCard.CardId);
-                            trickString += cardInTrick.Suit.Char + cardInTrick.Value.Char + " ";
-                        }
-                        await SendMessage(gameId, "<p>" + winningPlayer.Name + " won the trick. " + trickString + "</p>");
+                        await EndTrick(gameId, trick);
+
+                        // Check to see if the round is over
                         handCards = await HandService.GetHand(gameId, player.Id);
                         if (!handCards.Any())
                         {
-                            var roundResult = await BoardService.EndRound(gameId);
-
-                            var game = await GameService.GetGame(gameId);
-                            game.Team1Points += roundResult.Team1RoundChange;
-                            game.Team2Points += roundResult.Team2RoundChange;
-                            await GameService.SaveGame(game);
-
-                            string s1 = roundResult.Team1RoundChange == 1 ? "" : "s";
-                            await SendMessage(gameId, string.Format($"<p>Team 1 {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
-
-                            string s2 = roundResult.Team2RoundChange == 1 ? "" : "s";
-                            await SendMessage(gameId, string.Format($"<p>Team 2 {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
-
-                            TrickService.ClearTricks(gameId);
-                            await BoardService.StartRound(gameId);
-                            await BoardService.DealCards(gameId);
+                            await EndRound(gameId);
                         }
                     }
 
                     await SendCards(gameId);
                 }
             }
+        }
+
+        private async Task EndTrick(int gameId, Trick trick)
+        {
+            trick = await TrickService.EndTrick(trick.Id);
+            var winningPlayerId = trick.WinningPlayerId;
+            var winningPlayer = await PlayerService.GetPlayer((int)winningPlayerId);
+            var trickString = string.Empty;
+            foreach (var trickCard in trick.TrickCard)
+            {
+                var cardInTrick = await CardService.GetCardAsync(trickCard.CardId);
+                trickString += cardInTrick.Suit.Char + cardInTrick.Value.Char + " ";
+            }
+            await SendMessage(gameId, "<p>" + winningPlayer.Name + " won the trick. " + trickString + "</p>");
+        }
+
+        private async Task EndRound(int gameId)
+        {
+            var roundResult = await BoardService.EndRound(gameId);
+
+            var game = await GameService.GetGame(gameId);
+            game.Team1Points += roundResult.Team1RoundChange;
+            game.Team2Points += roundResult.Team2RoundChange;
+            await GameService.SaveGame(game);
+
+            string s1 = roundResult.Team1RoundChange == 1 ? "" : "s";
+            await SendMessage(gameId, string.Format($"<p>Team 1 {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
+
+            string s2 = roundResult.Team2RoundChange == 1 ? "" : "s";
+            await SendMessage(gameId, string.Format($"<p>Team 2 {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
+
+            TrickService.ClearTricks(gameId);
+            await BoardService.StartRound(gameId);
+            await BoardService.DealCards(gameId);
         }
 
         private string WagerResult(RoundResult roundResult, int teamId)
@@ -353,87 +367,13 @@ namespace Shmear.Web.Hubs
             }
         }
 
-        //private string[] GetSeatsArray(int gameId = 0)
-        //{
-        //    var game = new Game();
-        //    if (gameId == 0)
-        //    {
-        //        game = GameService.GetOpenGame();
-        //    }
-        //    else
-        //    {
-        //        game = GameService.GetGame(gameId);
-        //    }
-        //    var gamePlayers = GameService.GetGamePlayers(game.Id);
-        //    var seats = new string[] {
-        //        "",
-        //        "",
-        //        "",
-        //        ""
-        //    };
-
-        //    foreach (var gamePlayer in gamePlayers)
-        //    {
-        //        seats[gamePlayer.SeatNumber - 1] = gamePlayer.Player.Name;
-        //    }
-        //    return seats;
-        //}
-
-        //    gamePlayers = GameService.GetGamePlayers(gameId).ToArray();
-        //    if (gamePlayers.Count(_ => _.Wager != null) == 4 || gamePlayers.Max(_ => (_.Wager ?? 0) == 5))
-        //    {
-        //        var trick = TrickService.GetTricks(gameId).SingleOrDefault(_ => _.CompletedDate == null);
-        //        if (trick == null)
-        //        {
-        //            trick = TrickService.CreateTrick(gameId);
-        //        }
-        //        var gamePlayer = BoardService.GetNextCardPlayer(gameId, trick.Id);
-        //        for (var i = 0; i < 4; i++)
-        //        {
-        //            Clients.Client(gamePlayers[i].Player.ConnectionId).hideWager();
-        //            Clients.Client(gamePlayers[i].Player.ConnectionId).playerTurnUpdate(gamePlayer.SeatNumber);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        var gamePlayer = BoardService.GetNextWagerPlayer(gameId);
-        //        var highestWager = gamePlayers.Max(_ => _.Wager ?? 0);
-
-        //        for (var i = 0; i < 4; i++)
-        //        {
-        //            Clients.Client(gamePlayers[i].Player.ConnectionId).playerTurnUpdate(gamePlayer.SeatNumber);
-        //            Clients.Client(gamePlayers[i].Player.ConnectionId).wagerUpdate(highestWager);
-        //        }
-        //    }
-        //}
-
-        //public void SetPlayerName(string name)
-        //{
-        //    var player = PlayerService.GetPlayer(Context.ConnectionId);
-        //    if (name.Trim().Equals(string.Empty))
-        //    {
-        //        Clients.Client(player.ConnectionId).LogoutPlayer("Please pick a name");
-        //        return;
-        //    }
-
-        //    var otherPlayer = PlayerService.GetPlayerByName(name.Trim());
-
-        //    if (otherPlayer != null)
-        //    {
-        //        otherPlayer.ConnectionId = Context.ConnectionId;
-        //        otherPlayer.Name = name.Trim();
-        //        PlayerService.SavePlayer(otherPlayer);
-        //        PlayerService.DeletePlayer(player.Id);
-        //    }
-        //    else
-        //    {
-        //        player.Name = name.Trim();
-        //        PlayerService.SavePlayer(player);
-        //    }
-
-        //    var openGame = GameService.GetOpenGame();
-        //    Clients.Client(player.ConnectionId).ReceiveSeatStatuses(openGame.Id, GetSeatsArray(openGame.Id));
-        //}
+        public async Task SendChat(int gameId, string message)
+        {
+            var player = await PlayerService.GetPlayer(Context.ConnectionId);
+            var gamePlayer = await GameService.GetGamePlayer(gameId, player.Id);
+            if (gamePlayer != null)
+                await SendMessage(gameId, $"<b>{gamePlayer.Player.Name}:</b> {message}");
+        }
 
         //private void CheckStartGame(int gameId)
         //{
@@ -450,18 +390,6 @@ namespace Shmear.Web.Hubs
         //    }
         //}
 
-
-
-        
-
-        //private string WagerResult(RoundResult roundResult, int teamId)
-        //{
-        //    if (roundResult.TeamWager == teamId)
-        //    {
-        //        return $"with a wager of {roundResult.TeamWagerValue} ";
-        //    }
-        //    return "";
-        //}
 
         //public override Task OnConnected()
         //{
@@ -484,21 +412,9 @@ namespace Shmear.Web.Hubs
         //    return base.OnConnected();
         //}
 
-        //public void SendChat(int gameId, string message)
-        //{
-        //    var gamePlayer = GameService.GetGamePlayer(gameId, Context.ConnectionId);
-        //    if (gamePlayer != null)
-        //        SendMessage(gameId, $"<b>{gamePlayer.Player.Name}:</b> {message}");
-        //}
 
-        //private void SendMessage(int gameId, string message)
-        //{
-        //    var gamePlayers = GameService.GetGamePlayers(gameId);
-        //    foreach (var gamePlayer in gamePlayers)
-        //    {
-        //        SendMessage(gameId, gamePlayer.Player.ConnectionId, message);
-        //    }
-        //}
+
+
 
         //private void SendMessage(int gameId, int playerId, string message)
         //{
