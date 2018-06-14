@@ -17,6 +17,18 @@ namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
         public virtual DbSet<TrickCard> TrickCard { get; set; }
         public virtual DbSet<Value> Value { get; set; }
 
+        public CardContext()
+            : base()
+        {
+
+        }
+
+        public CardContext(DbContextOptions<CardContext> options)
+            : base(options)
+        {
+
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
