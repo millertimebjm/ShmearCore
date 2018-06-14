@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shmear.Business.Interfaces;
+using Shmear.Business.Services;
 using Shmear.Web.Hubs;
 
 namespace Shmear.Web
@@ -20,6 +22,7 @@ namespace Shmear.Web
         {
             services.AddMvc();
             services.AddSignalR();
+            services.AddTransient<IBoardService, BoardService>()
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,6 +51,7 @@ namespace Shmear.Web
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
         }
     }
 }

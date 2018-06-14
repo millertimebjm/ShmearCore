@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using Shmear.Business.Models;
+using Microsoft.EntityFrameworkCore;
 //using Shmear.Business.Game;
 
 namespace Shmear.Web.Hubs
@@ -15,6 +16,17 @@ namespace Shmear.Web.Hubs
         const string s = "s";
         //private string[] _seats;
         protected static object _seatsLock = new object();
+        private CardContext db = null;
+
+        public ShmearHub()
+            : base()
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<CardContext>();
+            optionsBuilder.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
+            db = new CardContext(optionsBuilder.Options);
+        }
+
+        ~ShmearHub() => db.Dispose();
 
         public async override Task OnConnectedAsync()
         {

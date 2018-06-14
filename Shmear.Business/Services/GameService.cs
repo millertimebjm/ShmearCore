@@ -13,7 +13,6 @@ namespace Shmear.Business.Services
     {
         public async static Task<Game> GetOpenGame()
         {
-            
             using (var db = new CardContext())
             {
                 var openGames = await db.Game.Where(_ => _.CreatedDate != null && (_.StartedDate == null && _.GamePlayer.Count() < 4)).ToListAsync();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shmear.Business.Interfaces;
 using Shmear.Business.Models;
 using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
 using System;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Shmear.Business.Services
 {
-    public class BoardService
+    public class BoardService : IBoardService
     {
         public async static Task StartRound(int gameId)
         {
