@@ -7,6 +7,6 @@ namespace Shmear.Business.Interfaces
 {
     public interface IBoardService
     {
-        public async static Task StartRound(int gameId);
+        Task StartRound(int gameId);
     }
 }

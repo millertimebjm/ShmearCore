@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shmear.EntityFramework.EntityFrameworkCore;
 using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
 using System;
 using System.Collections.Generic;
@@ -9,25 +10,25 @@ namespace Shmear.Business.Services
 {
     public class PlayerService
     {
-        public async static Task<Player> GetPlayer(int id)
+        public async static Task<Player> GetPlayer(DbContextOptions<CardContext> options, int id)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 return await db.Player.SingleAsync(_ => _.Id == id);
             }
         }
 
-        public async static Task<Player> GetPlayer(string conectionId)
+        public async static Task<Player> GetPlayer(DbContextOptions<CardContext> options, string conectionId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 return await db.Player.SingleOrDefaultAsync(_ => _.ConnectionId == conectionId);
             }
         }
 
-        public async static Task<Player> SavePlayer(Player player)
+        public async static Task<Player> SavePlayer(DbContextOptions<CardContext> options, Player player)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 Player returnPlayer;
 
@@ -54,17 +55,17 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async static Task<Player> GetPlayerByName(string name)
+        public async static Task<Player> GetPlayerByName(DbContextOptions<CardContext> options, string name)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 return await db.Player.SingleOrDefaultAsync(_ => _.Name.Equals(name));
             }
         }
 
-        public async static Task<int> DeletePlayer(int id)
+        public async static Task<int> DeletePlayer(DbContextOptions<CardContext> options, int id)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var player = await db.Player.SingleAsync(_ => _.Id == id);
                 db.Player.Remove(player);

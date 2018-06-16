@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shmear.EntityFramework.EntityFrameworkCore;
 using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,9 @@ namespace Shmear.Business.Services
 {
     public class HandService
     {
-        public static async Task<bool> AddCard(int gameId, int playerId, int cardId)
+        public static async Task<bool> AddCard(DbContextOptions<CardContext> options, int gameId, int playerId, int cardId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var handCard = new HandCard() { PlayerId = playerId, CardId = cardId, GameId = gameId };
                 await db.HandCard.AddAsync(handCard);
@@ -21,9 +22,9 @@ namespace Shmear.Business.Services
             return true;
         }
 
-        public static async Task<IEnumerable<HandCard>> GetHand(int gameId, int playerId)
+        public static async Task<IEnumerable<HandCard>> GetHand(DbContextOptions<CardContext> options, int gameId, int playerId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 return await db.HandCard.Include(_ => _.Card).ThenInclude(_ => _.Suit).Where(_ => _.GameId == gameId && _.PlayerId == playerId).ToListAsync();
             }

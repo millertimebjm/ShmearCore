@@ -13,4 +13,9 @@
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Shmear.Business\Shmear.Business.csproj" />
+    <ProjectReference Include="..\Shmear.EntityFrameworkCore\Shmear.EntityFramework.csproj" />
+  </ItemGroup>
+
 </Project>

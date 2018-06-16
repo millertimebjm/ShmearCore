@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shmear.EntityFramework.EntityFrameworkCore;
 using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
 using System;
 using System.Collections.Generic;
@@ -10,17 +11,17 @@ namespace Shmear.Business.Services
 {
     public class TrickService
     {
-        public static async Task<IEnumerable<Trick>> GetTricks(int gameId)
+        public static async Task<IEnumerable<Trick>> GetTricks(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 return await db.Trick.Include(_ => _.TrickCard).Where(_ => _.GameId == gameId).ToListAsync();
             }
         }
 
-        public static async Task<Trick> GetTrick(int trickId)
+        public static async Task<Trick> GetTrick(DbContextOptions<CardContext> options, int trickId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 return await GetTrick(db, trickId);
             }
@@ -31,9 +32,9 @@ namespace Shmear.Business.Services
             return await db.Trick.Include(_ => _.TrickCard).SingleAsync(_ => _.Id == trickId);
         }
 
-        public static async Task<Trick> CreateTrick(int gameId)
+        public static async Task<Trick> CreateTrick(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var trick = new Trick()
                 {
@@ -44,26 +45,26 @@ namespace Shmear.Business.Services
                 };
                 await db.Trick.AddAsync(trick);
                 await db.SaveChangesAsync();
-                return await GetTrick(trick.Id);
+                return await GetTrick(options, trick.Id);
             }
         }
 
-        public static async Task<Trick> EndTrick(int trickId)
+        public static async Task<Trick> EndTrick(DbContextOptions<CardContext> options, int trickId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var trick = await GetTrick(db, trickId);
                 trick.CompletedDate = DateTime.Now;
-                trick.WinningPlayerId = BoardService.DetermineWinningPlayerId(trick.GameId, trick.TrickCard);
+                trick.WinningPlayerId = BoardService.DetermineWinningPlayerId(options, trick.GameId, trick.TrickCard);
                 await db.SaveChangesAsync();
 
-                return await GetTrick(trick.Id);
+                return await GetTrick(options, trick.Id);
             }
         }
 
-        public static async Task<Trick> PlayCard(int trickId, int playerId, int cardId)
+        public static async Task<Trick> PlayCard(DbContextOptions<CardContext> options, int trickId, int playerId, int cardId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var highestSequence = ((await db.TrickCard.Where(_ => _.TrickId == trickId).OrderByDescending(_ => _.Sequence).FirstOrDefaultAsync()) ?? new TrickCard()).Sequence;
                 var trickCard = new TrickCard()
@@ -84,13 +85,13 @@ namespace Shmear.Business.Services
                     board.TrumpSuitId = db.Card.Single(_ => _.Id == cardId).SuitId;
 
                 await db.SaveChangesAsync();
-                return await GetTrick(trick.Id);
+                return await GetTrick(options, trick.Id);
             }
         }
 
-        public static void ClearTricks(int gameId)
+        public static void ClearTricks(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var tricks = db.Trick.Where(_ => _.GameId == gameId);
                 foreach (var trick in tricks)

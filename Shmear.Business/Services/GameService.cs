@@ -6,14 +6,15 @@ using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
 //using Shmear.EntityFramework.EntityFrameworkCore.SqlServer;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Shmear.EntityFramework.EntityFrameworkCore;
 
 namespace Shmear.Business.Services
 {
     public class GameService
     {
-        public async static Task<Game> GetOpenGame()
+        public async static Task<Game> GetOpenGame(DbContextOptions<CardContext> options)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var openGames = await db.Game.Where(_ => _.CreatedDate != null && (_.StartedDate == null && _.GamePlayer.Count() < 4)).ToListAsync();
                 if (openGames.Any())
@@ -21,11 +22,11 @@ namespace Shmear.Business.Services
                     return openGames.First();
                 }
 
-                return await CreateGame();
+                return await CreateGame(options);
             }
         }
 
-        public async static Task<Game> CreateGame()
+        public async static Task<Game> CreateGame(DbContextOptions<CardContext> options)
         {
             var game = new EntityFramework.EntityFrameworkCore.SqlServer.Models.Game
             {
@@ -34,25 +35,25 @@ namespace Shmear.Business.Services
                 StartedDate = null
             };
 
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 await db.Game.AddAsync(game);
                 await db.SaveChangesAsync();
             }
-            return await GetGame(game.Id);
+            return await GetGame(options, game.Id);
         }
 
-        public async static Task<Game> GetGame(int id)
+        public async static Task<Game> GetGame(DbContextOptions<CardContext> options, int id)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 return await db.Game.SingleAsync(_ => _.Id == id);
             }
         }
 
-        public async static Task<IEnumerable<GamePlayer>> GetGamePlayers(int gameId)
+        public async static Task<IEnumerable<GamePlayer>> GetGamePlayers(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var gamePlayers = await db.GamePlayer.Include(_ => _.Player).Where(_ => _.GameId == gameId).ToListAsync();
                 //foreach (var gamePlayer in gamePlayers)
@@ -63,9 +64,9 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async static Task<bool> AddPlayer(int gameId, int playerId, int seatNumber)
+        public async static Task<bool> AddPlayer(DbContextOptions<CardContext> options, int gameId, int playerId, int seatNumber)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var game = await db.Game.SingleAsync(_ => _.Id == gameId);
                 var player = await db.Player.SingleAsync(_ => _.Id == playerId);
@@ -97,9 +98,9 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async static Task<bool> RemovePlayer(int gameId, int playerId)
+        public async static Task<bool> RemovePlayer(DbContextOptions<CardContext> options, int gameId, int playerId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 //var game = await db.Game.Include(_ => _.GamePlayer).SingleAsync(_ => _.Id == gameId);
                 //var player = await db.Player.SingleAsync(_ => _.Id == playerId);
@@ -117,27 +118,27 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async static Task<GamePlayer> GetGamePlayer(int gameId, int playerId)
+        public async static Task<GamePlayer> GetGamePlayer(DbContextOptions<CardContext> options, int gameId, int playerId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 //var game = await db.Game.SingleAsync(_ => _.Id == gameId);
                 return await db.GamePlayer.Include(_ => _.Player).SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
             }
         }
 
-        public async static Task<GamePlayer> GetGamePlayer(int gameId, string connectionId)
+        public async static Task<GamePlayer> GetGamePlayer(DbContextOptions<CardContext> options, int gameId, string connectionId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var game = await db.Game.SingleAsync(_ => _.Id == gameId);
                 return await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.Player.ConnectionId == connectionId);
             }
         }
 
-        public async static Task<GamePlayer> SaveGamePlayer(GamePlayer gamePlayer)
+        public async static Task<GamePlayer> SaveGamePlayer(DbContextOptions<CardContext> options, GamePlayer gamePlayer)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var gamePlayerReturn = new GamePlayer();
                 if (gamePlayer.Id == 0)
@@ -154,13 +155,13 @@ namespace Shmear.Business.Services
                     gamePlayerReturn = gamePlayerTemp;
                 }
                 await db.SaveChangesAsync();
-                return await GameService.GetGamePlayer(gamePlayerReturn.GameId, gamePlayerReturn.PlayerId);
+                return await GameService.GetGamePlayer(options, gamePlayerReturn.GameId, gamePlayerReturn.PlayerId);
             }
         }
 
-        public async static Task<bool> StartGame(int gameId)
+        public async static Task<bool> StartGame(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
 
                 var game = await db.Game.SingleAsync(_ => _.Id == gameId);
@@ -177,41 +178,41 @@ namespace Shmear.Business.Services
             }
         }
 
-        public static async Task<List<Player>> GetPlayersByGameAsync(int gameId)
+        public static async Task<List<Player>> GetPlayersByGameAsync(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 return await db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => _.Player).ToListAsync();
             }
         }
 
-        public static async Task<IEnumerable<Player>> GetPlayersByGame(int gameId)
+        public static async Task<IEnumerable<Player>> GetPlayersByGame(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 return await db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => _.Player).ToListAsync();
             }
         }
 
-        public static async Task<bool> ValidCardPlay(int gameId, int boardId, int playerId, int cardId)
+        public static async Task<bool> ValidCardPlay(DbContextOptions<CardContext> options, int gameId, int boardId, int playerId, int cardId)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 var gamePlayer = await db.GamePlayer.Include(_ => _.Player).SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
                 var player = gamePlayer.Player;
 
                 //var game = await db.Game.SingleAsync(_ => _.Id == gameId);
-                var cards = await HandService.GetHand(gameId, player.Id);
-                var tricks = await TrickService.GetTricks(gameId);
+                var cards = await HandService.GetHand(options, gameId, player.Id);
+                var tricks = await TrickService.GetTricks(options, gameId);
                 var trick = tricks.SingleOrDefault(_ => _.CompletedDate == null);
                 if (trick == null || trick.Id == 0)
                 {
-                    trick = await TrickService.CreateTrick(gameId);
+                    trick = await TrickService.CreateTrick(options, gameId);
                 }
 
-                var board = await BoardService.GetBoard(boardId);
+                var board = await BoardService.GetBoard(options, boardId);
                 var trumpSuitId = board.TrumpSuitId ?? 0;
-                var card = await CardService.GetCardAsync(cardId);
+                var card = await CardService.GetCardAsync(options, cardId);
 
                 //if (!cards.Select(_ => _.CardId).Contains(card.Id))
                 //    throw new Exception("Player does not have that card in their hand.");
@@ -227,7 +228,7 @@ namespace Shmear.Business.Services
                 {
                     if (trick.TrickCard.Any())
                     {
-                        var cardLed = (await CardService.GetCardAsync(trick.TrickCard.First().CardId));
+                        var cardLed = (await CardService.GetCardAsync(options, trick.TrickCard.First().CardId));
                         var suitLedId = cardLed.SuitId;
                         if (card.SuitId == trumpSuitId)
                             return true;
@@ -235,8 +236,8 @@ namespace Shmear.Business.Services
                             return true;
                         if (suitLedId == card.SuitId)
                             return true;
-                        if (cards.All(_ => CardService.GetCard(_.Card.Id).SuitId != suitLedId)
-                            && cards.All(_ => CardService.GetCard(_.Card.Id).Value.Name != CardService.ValueEnum.Joker.ToString()))
+                        if (cards.All(_ => CardService.GetCard(options, _.Card.Id).SuitId != suitLedId)
+                            && cards.All(_ => CardService.GetCard(options, _.Card.Id).Value.Name != CardService.ValueEnum.Joker.ToString()))
                             return true;
 
                         return false;
@@ -247,9 +248,9 @@ namespace Shmear.Business.Services
             }
         }
 
-        public static async Task<Game> SaveGame(Game game)
+        public static async Task<Game> SaveGame(DbContextOptions<CardContext> options, Game game)
         {
-            using (var db = new CardContext())
+            using (var db = CardFactory.Create(options))
             {
                 if (game.Id == 0)
                 {
