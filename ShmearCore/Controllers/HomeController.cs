@@ -24,7 +24,6 @@ namespace Shmear.Web.Controllers
         {
             try
             {
-                //var gameService = new GameService(_contextOptions);
                 // Initialize Database - Don't care about result
                 Task.Run(() => GameService.GetOpenGame(_contextOptions));
             }
