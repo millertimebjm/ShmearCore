@@ -7,9 +7,9 @@ namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
 {
     public static class CardContextFactory
     {
-        public static CardContext Create(DbContextOptions<CardContext> optionsBuilder)
+        public static CardContext Create(DbContextOptions<CardContext> options)
         {
-            return new CardContext(optionsBuilder);
+            return new CardContext(options);
         }
     }
 }
