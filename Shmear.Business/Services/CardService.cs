@@ -35,7 +35,7 @@ namespace Shmear.Business.Services
 
         public static async Task<IEnumerable<Card>> GetCards(DbContextOptions<CardContext> options)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return await db.Card.ToListAsync();
             }
@@ -43,7 +43,7 @@ namespace Shmear.Business.Services
 
         public static async Task<Card> GetCardAsync(DbContextOptions<CardContext> options, int id)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return await db.Card.Include(_ => _.Suit).Include(_ => _.Value).SingleAsync(_ => _.Id == id);
             }
@@ -51,7 +51,7 @@ namespace Shmear.Business.Services
 
         public static Card GetCard(DbContextOptions<CardContext> options, int id)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return db.Card.Include(_ => _.Suit).Include(_ => _.Value).Single(_ => _.Id == id);
             }
@@ -69,7 +69,7 @@ namespace Shmear.Business.Services
 
         public static Card GetCard(DbContextOptions<CardContext> options, SuitEnum suit, ValueEnum value)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return db.Card.Single(_ => _.Suit.Name == suit.ToString() && _.Value.Name == value.ToString());
             }
@@ -106,7 +106,7 @@ namespace Shmear.Business.Services
                 }
             };
 
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 foreach (var suit in suits)
                 {
@@ -181,7 +181,7 @@ namespace Shmear.Business.Services
                 },
             };
 
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 foreach (var value in values)
                 {
@@ -197,7 +197,7 @@ namespace Shmear.Business.Services
 
         public static bool SeedCards(DbContextOptions<CardContext> options)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 foreach (SuitEnum suit in Enum.GetValues(typeof(SuitEnum)))
                 {

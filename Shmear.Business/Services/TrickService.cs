@@ -13,7 +13,7 @@ namespace Shmear.Business.Services
     {
         public static async Task<IEnumerable<Trick>> GetTricks(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return await db.Trick.Include(_ => _.TrickCard).Where(_ => _.GameId == gameId).ToListAsync();
             }
@@ -21,7 +21,7 @@ namespace Shmear.Business.Services
 
         public static async Task<Trick> GetTrick(DbContextOptions<CardContext> options, int trickId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return await GetTrick(db, trickId);
             }
@@ -34,7 +34,7 @@ namespace Shmear.Business.Services
 
         public static async Task<Trick> CreateTrick(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var trick = new Trick()
                 {
@@ -51,7 +51,7 @@ namespace Shmear.Business.Services
 
         public static async Task<Trick> EndTrick(DbContextOptions<CardContext> options, int trickId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var trick = await GetTrick(db, trickId);
                 trick.CompletedDate = DateTime.Now;
@@ -64,7 +64,7 @@ namespace Shmear.Business.Services
 
         public static async Task<Trick> PlayCard(DbContextOptions<CardContext> options, int trickId, int playerId, int cardId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var highestSequence = ((await db.TrickCard.Where(_ => _.TrickId == trickId).OrderByDescending(_ => _.Sequence).FirstOrDefaultAsync()) ?? new TrickCard()).Sequence;
                 var trickCard = new TrickCard()
@@ -91,7 +91,7 @@ namespace Shmear.Business.Services
 
         public static void ClearTricks(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var tricks = db.Trick.Where(_ => _.GameId == gameId);
                 foreach (var trick in tricks)
