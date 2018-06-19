@@ -14,7 +14,7 @@ namespace Shmear.Business.Services
     {
         public async static Task<Game> GetOpenGame(DbContextOptions<CardContext> options)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var openGames = await db.Game.Where(_ => _.CreatedDate != null && (_.StartedDate == null && _.GamePlayer.Count() < 4)).ToListAsync();
                 if (openGames.Any())
@@ -35,7 +35,7 @@ namespace Shmear.Business.Services
                 StartedDate = null
             };
 
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 await db.Game.AddAsync(game);
                 await db.SaveChangesAsync();
@@ -45,7 +45,7 @@ namespace Shmear.Business.Services
 
         public async static Task<Game> GetGame(DbContextOptions<CardContext> options, int id)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return await db.Game.SingleAsync(_ => _.Id == id);
             }
@@ -53,7 +53,7 @@ namespace Shmear.Business.Services
 
         public async static Task<IEnumerable<GamePlayer>> GetGamePlayers(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var gamePlayers = await db.GamePlayer.Include(_ => _.Player).Where(_ => _.GameId == gameId).ToListAsync();
                 //foreach (var gamePlayer in gamePlayers)
@@ -66,7 +66,7 @@ namespace Shmear.Business.Services
 
         public async static Task<bool> AddPlayer(DbContextOptions<CardContext> options, int gameId, int playerId, int seatNumber)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var game = await db.Game.SingleAsync(_ => _.Id == gameId);
                 var player = await db.Player.SingleAsync(_ => _.Id == playerId);
@@ -100,7 +100,7 @@ namespace Shmear.Business.Services
 
         public async static Task<bool> RemovePlayer(DbContextOptions<CardContext> options, int gameId, int playerId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 //var game = await db.Game.Include(_ => _.GamePlayer).SingleAsync(_ => _.Id == gameId);
                 //var player = await db.Player.SingleAsync(_ => _.Id == playerId);
@@ -120,7 +120,7 @@ namespace Shmear.Business.Services
 
         public async static Task<GamePlayer> GetGamePlayer(DbContextOptions<CardContext> options, int gameId, int playerId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 //var game = await db.Game.SingleAsync(_ => _.Id == gameId);
                 return await db.GamePlayer.Include(_ => _.Player).SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
@@ -129,7 +129,7 @@ namespace Shmear.Business.Services
 
         public async static Task<GamePlayer> GetGamePlayer(DbContextOptions<CardContext> options, int gameId, string connectionId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var game = await db.Game.SingleAsync(_ => _.Id == gameId);
                 return await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.Player.ConnectionId == connectionId);
@@ -138,7 +138,7 @@ namespace Shmear.Business.Services
 
         public async static Task<GamePlayer> SaveGamePlayer(DbContextOptions<CardContext> options, GamePlayer gamePlayer)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var gamePlayerReturn = new GamePlayer();
                 if (gamePlayer.Id == 0)
@@ -161,7 +161,7 @@ namespace Shmear.Business.Services
 
         public async static Task<bool> StartGame(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
 
                 var game = await db.Game.SingleAsync(_ => _.Id == gameId);
@@ -180,7 +180,7 @@ namespace Shmear.Business.Services
 
         public static async Task<List<Player>> GetPlayersByGameAsync(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return await db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => _.Player).ToListAsync();
             }
@@ -188,7 +188,7 @@ namespace Shmear.Business.Services
 
         public static async Task<IEnumerable<Player>> GetPlayersByGame(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return await db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => _.Player).ToListAsync();
             }
@@ -196,7 +196,7 @@ namespace Shmear.Business.Services
 
         public static async Task<bool> ValidCardPlay(DbContextOptions<CardContext> options, int gameId, int boardId, int playerId, int cardId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var gamePlayer = await db.GamePlayer.Include(_ => _.Player).SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
                 var player = gamePlayer.Player;
@@ -250,7 +250,7 @@ namespace Shmear.Business.Services
 
         public static async Task<Game> SaveGame(DbContextOptions<CardContext> options, Game game)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 if (game.Id == 0)
                 {

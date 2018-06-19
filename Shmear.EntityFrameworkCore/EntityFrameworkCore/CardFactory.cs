@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
 {
-    public static class CardFactory
+    public static class CardContextFactory
     {
         public static CardContext Create(DbContextOptions<CardContext> optionsBuilder)
         {

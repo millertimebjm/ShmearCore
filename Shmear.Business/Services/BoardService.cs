@@ -21,7 +21,7 @@ namespace Shmear.Business.Services
             await ResetWagers(options, gameId);
             await ResetTrumpCard(options, gameId);
 
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var board = await BoardService.GetBoardByGameId(options, gameId);
 
@@ -44,7 +44,7 @@ namespace Shmear.Business.Services
 
         private async static Task ResetWagers(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var gamePlayers = await db.GamePlayer.Where(_ => _.GameId == gameId).OrderBy(_ => _.SeatNumber).ToListAsync();
                 foreach (var gamePlayer in gamePlayers)
@@ -57,7 +57,7 @@ namespace Shmear.Business.Services
 
         private static async Task ResetTrumpCard(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var board = await BoardService.GetBoardByGameId(options, gameId);
                 board.TrumpSuitId = null;
@@ -67,7 +67,7 @@ namespace Shmear.Business.Services
 
         public static async Task<Board> GetBoardByGameId(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return await db.Board.SingleAsync(_ => _.GameId == gameId);
             }
@@ -75,7 +75,7 @@ namespace Shmear.Business.Services
 
         private async static Task CreateBoardIfNotExists(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var board = await db.Board.SingleOrDefaultAsync(_ => _.GameId == gameId);
                 if (board == null)
@@ -90,7 +90,7 @@ namespace Shmear.Business.Services
 
         public async static Task<Board> SaveBoard(DbContextOptions<CardContext> options, Board board)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var result = new Board();
                 if (board.Id == 0)
@@ -115,7 +115,7 @@ namespace Shmear.Business.Services
 
         public async static Task<Board> GetBoard(DbContextOptions<CardContext> options, int id)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 return await db.Board.SingleAsync(_ => _.Id == id);
             }
@@ -220,7 +220,7 @@ namespace Shmear.Business.Services
                 4
             };
 
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var board = await db.Board.SingleAsync(_ => _.GameId == gameId);
                 var gamePlayers = db.GamePlayer.Where(_ => _.GameId == gameId);
@@ -384,7 +384,7 @@ namespace Shmear.Business.Services
 
         public static int DetermineWinningPlayerId(DbContextOptions<CardContext> options, int gameId, IEnumerable<TrickCard> trickCards)
         {
-            using (var db = CardFactory.Create(options))
+            using (var db = CardContextFactory.Create(options))
             {
                 var trumpSuitId = (int)db.Board.Single(_ => _.GameId == gameId).TrumpSuitId;
                 trickCards = trickCards.OrderBy(_ => _.Sequence);
