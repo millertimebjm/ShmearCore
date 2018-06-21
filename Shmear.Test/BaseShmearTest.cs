@@ -6,15 +6,26 @@ using System.Text;
 
 namespace Shmear.Test
 {
-    public class ShmearTest
+    public class BaseShmearTest
     {
         public DbContextOptions<CardContext> options;
 
-        public ShmearTest()
+        public BaseShmearTest()
         {
             var optionsBuilder = new DbContextOptionsBuilder<CardContext>();
             optionsBuilder.UseInMemoryDatabase(Guid.NewGuid().ToString());
             options = optionsBuilder.Options;
+        }
+
+        protected Player GetNewPlayer(string name)
+        {
+            return new Player()
+            {
+                Id = 0,
+                ConnectionId = Guid.NewGuid().ToString(),
+                Name = name,
+                KeepAlive = DateTime.Now,
+            };
         }
     }
 }

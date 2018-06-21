@@ -7,39 +7,54 @@ using Xunit;
 
 namespace Shmear.Test
 {
-    public class PlayerTest : ShmearTest
+    public class PlayerTest : BaseShmearTest
     {
-        private Player _player;
-        private string _connectionId = "PlayerTest";
-
         public PlayerTest() : base()
         {
-            _player = new Player()
-            {
-                ConnectionId = _connectionId,
-                Id = 0,
-                Name = "PlayerTest",
-                KeepAlive = DateTime.Now,
-            };
+            
         }
 
         [Fact]
         public async void PlayerTestSave()
         {
-            _player = await PlayerService.SavePlayer(options, _player);
-            Assert.True(_player.Id > 0);
+            var player = GetNewPlayer("PlayerTestSave");
+            player = await PlayerService.SavePlayer(options, player);
+            Assert.True(player.Id > 0);
+        }
 
-            var playerById = await PlayerService.GetPlayer(options, _player.Id);
-            Assert.True(playerById.Id == _player.Id);
-            Assert.True(playerById.ConnectionId == _player.ConnectionId);
-            Assert.True(playerById.Name == _player.Name);
-            Assert.True(playerById.KeepAlive == _player.KeepAlive);
+        [Fact]
+        public async void PlayerTestGet()
+        {
+            var player = GetNewPlayer("PlayerTestGet");
+            player = await PlayerService.SavePlayer(options, player);
 
-            var playerByName = await PlayerService.GetPlayerByName(options, _player.Name);
-            Assert.True(playerByName.Id == _player.Id);
-            Assert.True(playerByName.ConnectionId == _player.ConnectionId);
-            Assert.True(playerByName.Name == _player.Name);
-            Assert.True(playerByName.KeepAlive == _player.KeepAlive);
+            var playerById = await PlayerService.GetPlayer(options, player.Id);
+            Assert.True(playerById.Id == player.Id);
+            Assert.True(playerById.ConnectionId == player.ConnectionId);
+            Assert.True(playerById.Name == player.Name);
+            Assert.True(playerById.KeepAlive == player.KeepAlive);
+
+            var playerByName = await PlayerService.GetPlayerByName(options, player.Name);
+            Assert.True(playerByName.Id == player.Id);
+            Assert.True(playerByName.ConnectionId == player.ConnectionId);
+            Assert.True(playerByName.Name == player.Name);
+            Assert.True(playerByName.KeepAlive == player.KeepAlive);
+        }
+
+        [Fact]
+        public async void PlayerTestDelete()
+        {
+            var player = GetNewPlayer("PlayerTestDelete");
+            player = await PlayerService.SavePlayer(options, player);
+
+            var changeCount = await PlayerService.DeletePlayer(options, player.Id);
+            Assert.True(changeCount > 0);
+
+            var deletedPlayerById = await PlayerService.GetPlayer(options, player.Id);
+            Assert.True(deletedPlayerById == null);
+
+            var deletedPlayerByName = await PlayerService.GetPlayerByName(options, player.Name);
+            Assert.True(deletedPlayerByName == null);
         }
     }
 }
