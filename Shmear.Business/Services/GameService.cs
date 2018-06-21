@@ -55,12 +55,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                var gamePlayers = await db.GamePlayer.Include(_ => _.Player).Where(_ => _.GameId == gameId).ToListAsync();
-                //foreach (var gamePlayer in gamePlayers)
-                //{
-                //    gamePlayer.Player = await db.Player.FindAsync(gamePlayer.PlayerId);
-                //}
-                return gamePlayers;
+                return await db.GamePlayer.Include(_ => _.Player).Where(_ => _.GameId == gameId).ToListAsync();
             }
         }
 
@@ -177,20 +172,9 @@ namespace Shmear.Business.Services
             }
         }
 
-        public static async Task<List<Player>> GetPlayersByGameAsync(DbContextOptions<CardContext> options, int gameId)
+        public static async Task<IEnumerable<Player>> GetPlayersByGameAsync(DbContextOptions<CardContext> options, int gameId)
         {
-            using (var db = CardContextFactory.Create(options))
-            {
-                return await db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => _.Player).ToListAsync();
-            }
-        }
-
-        public static async Task<IEnumerable<Player>> GetPlayersByGame(DbContextOptions<CardContext> options, int gameId)
-        {
-            using (var db = CardContextFactory.Create(options))
-            {
-                return await db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => _.Player).ToListAsync();
-            }
+            return (await GetGamePlayers(options, gameId)).Select(_ => _.Player);
         }
 
         public static async Task<bool> ValidCardPlay(DbContextOptions<CardContext> options, int gameId, int boardId, int playerId, int cardId)
@@ -247,28 +231,16 @@ namespace Shmear.Business.Services
             }
         }
 
-        public static async Task<Game> SaveGame(DbContextOptions<CardContext> options, Game game)
+        public static async Task<Game> SaveRoundChange(DbContextOptions<CardContext> options, int gameId, int team1Points, int team2Points)
         {
             using (var db = CardContextFactory.Create(options))
             {
-                if (game.Id == 0)
-                {
-                    game.Team1Points = 0;
-                    game.Team2Points = 0;
-                    game.CreatedDate = DateTime.Now;
-                    game.StartedDate = null;
-                    await db.Game.AddAsync(game);
-                }
-                else
-                {
-                    var gameTemp = await db.Game.SingleAsync(_ => _.Id == game.Id);
-                    gameTemp.Team1Points = game.Team1Points;
-                    gameTemp.Team2Points = game.Team2Points;
-                }
-
+                var game = await db.Game.SingleAsync(_ => _.Id == gameId);
+                game.Team1Points = game.Team1Points;
+                game.Team2Points = game.Team2Points;
                 await db.SaveChangesAsync();
+                return game;
             }
-            return game;
         }
     }
 }

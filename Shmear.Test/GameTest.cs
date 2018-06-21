@@ -85,5 +85,32 @@ namespace Shmear.Test
                 Assert.Contains(gamePlayer.PlayerId, players.Select(_ => _.Id));
             }
         }
+
+        [Fact]
+        public async void GameTestGetPlayersByGame()
+        {
+            var game = await GameService.CreateGame(options);
+            var players = new List<Player>();
+            for (int i = 0; i < 4; i++)
+            {
+                var player = GetNewPlayer($"GameTestGetGamePlayers{i}");
+                player = await PlayerService.SavePlayer(options, player);
+                var gameAddPlayerChange = await GameService.AddPlayer(options, game.Id, player.Id, i);
+                players.Add(player);
+            }
+
+            var newPlayers = await GameService.GetPlayersByGameAsync(options, game.Id);
+            Assert.True(newPlayers.Count() == 4);
+            foreach (var newPlayer in newPlayers)
+            {
+                Assert.Contains(newPlayer.Id, players.Select(_ => _.Id));
+            }
+        }
+
+        [Fact]
+        public async void GameTest()
+        {
+            GameService.SaveGamePlayer
+        }
     }
 }
