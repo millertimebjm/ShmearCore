@@ -9,13 +9,13 @@ namespace Shmear.Business.Services
 {
     public static class PlayerFactory
     {
-        public async static Task<IPlayer> GetPlayer(DbContextOptions<CardContext> options, int playerId)
-        {
-            using (var db = CardContextFactory.Create(options))
-            {
-                var player = await db.Player.SingleAsync(_ => _.Id == playerId);
-                return player;
-            }
-        }
+        //public async static Task<IPlayer> GetPlayer(DbContextOptions<CardContext> options, int playerId)
+        //{
+        //    using (var db = CardContextFactory.Create(options))
+        //    {
+        //        var player = await db.Player.SingleAsync(_ => _.Id == playerId);
+        //        return player;
+        //    }
+        //}
     }
 }
