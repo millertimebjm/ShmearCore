@@ -205,10 +205,6 @@ namespace Shmear.Business.Services
         public static async Task<RoundResult> DeterminePointsByTeam(DbContextOptions<CardContext> options, int gameId)
         {
             var pointList = new List<Point>();
-            //var team1Points = 0;
-            //var team1Result = 0;
-            //var team2Points = 0;
-            //var team2Result = 0;
             var team1PlayerSeats = new[]
             {
                 1,

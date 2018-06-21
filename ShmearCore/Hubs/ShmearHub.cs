@@ -331,7 +331,7 @@ namespace Shmear.Web.Hubs
             var game = await GameService.GetGame(options, gameId);
             game.Team1Points += roundResult.Team1RoundChange;
             game.Team2Points += roundResult.Team2RoundChange;
-            await GameService.SaveGame(options, game);
+            game = await GameService.SaveRoundChange(options, game.Id, game.Team1Points, game.Team2Points);
 
             string s1 = roundResult.Team1RoundChange == 1 ? "" : "s";
             await SendMessage(gameId, string.Format($"<p>Team 1 {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
