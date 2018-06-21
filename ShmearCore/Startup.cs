@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shmear.Business.Interfaces;
 using Shmear.Business.Services;
 using Shmear.Web.Hubs;
 

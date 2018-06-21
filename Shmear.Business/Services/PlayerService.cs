@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Shmear.Business.Services
 {
-    public class PlayerService : IPlayer
+    public class PlayerService
     {
-        public async Task<Player> GetPlayer(DbContextOptions<CardContext> options, int id)
+        public async static Task<Player> GetPlayer(DbContextOptions<CardContext> options, int id)
         {
             using (var db = CardContextFactory.Create(options))
             {
@@ -18,7 +18,7 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async Task<Player> GetPlayer(DbContextOptions<CardContext> options, string conectionId)
+        public async static Task<Player> GetPlayer(DbContextOptions<CardContext> options, string conectionId)
         {
             using (var db = CardContextFactory.Create(options))
             {
@@ -26,7 +26,7 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async Task<Player> SavePlayer(DbContextOptions<CardContext> options, Player player)
+        public async static Task<Player> SavePlayer(DbContextOptions<CardContext> options, Player player)
         {
             using (var db = CardContextFactory.Create(options))
             {
@@ -55,7 +55,7 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async Task<Player> GetPlayerByName(DbContextOptions<CardContext> options, string name)
+        public async static Task<Player> GetPlayerByName(DbContextOptions<CardContext> options, string name)
         {
             using (var db = CardContextFactory.Create(options))
             {
@@ -63,7 +63,7 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async Task<int> DeletePlayer(DbContextOptions<CardContext> options, int id)
+        public async static Task<int> DeletePlayer(DbContextOptions<CardContext> options, int id)
         {
             using (var db = CardContextFactory.Create(options))
             {

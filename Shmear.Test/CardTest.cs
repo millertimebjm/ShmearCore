@@ -16,14 +16,19 @@ namespace Shmear.Test
             var optionsBuilder = new DbContextOptionsBuilder<CardContext>();
             optionsBuilder.UseInMemoryDatabase(Guid.NewGuid().ToString());
             _contextOptions = optionsBuilder.Options;
-            var seedDatabase = new SeedDatabase(_contextOptions);
-            //seedDatabase.Run();
         }
 
         [Fact]
-        public void JokerTest()
+        public void SeedTest()
         {
-            //var cardService = new CardService(_contextOptions);
+            var seedDatabase = new SeedDatabase();
+            seedDatabase.RunWithOptions(_contextOptions);
         }
+
+        //[Fact]
+        //public void JokerTest()
+        //{
+        //    //var cardService = new CardService(_contextOptions);
+        //}
     }
 }
