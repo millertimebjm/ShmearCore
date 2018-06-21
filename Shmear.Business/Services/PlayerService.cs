@@ -14,7 +14,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                return await db.Player.SingleAsync(_ => _.Id == id);
+                return await db.Player.SingleOrDefaultAsync(_ => _.Id == id);
             }
         }
 

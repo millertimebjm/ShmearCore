@@ -8,21 +8,18 @@ using Xunit;
 
 namespace Shmear.Test
 {
-    public class CardTest
+    public class CardTest : BaseShmearTest
     {
-        private DbContextOptions<CardContext> _contextOptions;
-        public CardTest()
+        public CardTest() : base()
         {
-            var optionsBuilder = new DbContextOptionsBuilder<CardContext>();
-            optionsBuilder.UseInMemoryDatabase(Guid.NewGuid().ToString());
-            _contextOptions = optionsBuilder.Options;
+
         }
 
         [Fact]
         public void SeedTest()
         {
             var seedDatabase = new SeedDatabase();
-            seedDatabase.RunWithOptions(_contextOptions);
+            seedDatabase.RunWithOptions(options);
         }
 
         //[Fact]

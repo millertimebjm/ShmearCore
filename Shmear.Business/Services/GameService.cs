@@ -47,7 +47,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                return await db.Game.SingleAsync(_ => _.Id == id);
+                return await db.Game.SingleOrDefaultAsync(_ => _.Id == id);
             }
         }
 
@@ -64,7 +64,7 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async static Task<bool> AddPlayer(DbContextOptions<CardContext> options, int gameId, int playerId, int seatNumber)
+        public async static Task<int> AddPlayer(DbContextOptions<CardContext> options, int gameId, int playerId, int seatNumber)
         {
             using (var db = CardContextFactory.Create(options))
             {
@@ -90,11 +90,10 @@ namespace Shmear.Business.Services
 
                     await db.GamePlayer.AddAsync(gamePlayer);
                     player.KeepAlive = DateTime.Now;
-                    await db.SaveChangesAsync();
-                    return true;
+                    return await db.SaveChangesAsync();
                 }
 
-                return false;
+                return 0;
             }
         }
 
