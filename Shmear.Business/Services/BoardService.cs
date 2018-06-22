@@ -112,11 +112,11 @@ namespace Shmear.Business.Services
             }
         }
 
-        public async static Task<Board> GetBoard(DbContextOptions<CardContext> options, int id)
+        public async static Task<Board> GetBoard(DbContextOptions<CardContext> options, int boardId)
         {
             using (var db = CardContextFactory.Create(options))
             {
-                return await db.Board.SingleAsync(_ => _.Id == id);
+                return await db.Board.SingleAsync(_ => _.Id == boardId);
             }
         }
 
