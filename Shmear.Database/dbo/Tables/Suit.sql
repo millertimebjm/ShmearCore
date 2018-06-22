@@ -1,0 +1,9 @@
+﻿CREATE TABLE [dbo].[Suit] (
+    [Id]   INT          IDENTITY (1, 1) NOT NULL,
+    [Name] VARCHAR (10) NOT NULL,
+    [Char] NVARCHAR (1) NOT NULL,
+    CONSTRAINT [PK__Suit__3214EC0752F30A5F] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+
+
