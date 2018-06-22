@@ -8,4 +8,8 @@
     <ProjectReference Include="..\Shmear.EntityFrameworkCore\Shmear.EntityFramework.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
+  </ItemGroup>
+
 </Project>

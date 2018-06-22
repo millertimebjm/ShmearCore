@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Shmear.Business.Interfaces;
 using Shmear.Business.Models;
 using Shmear.EntityFramework.EntityFrameworkCore;
 using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;

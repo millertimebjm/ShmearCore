@@ -26,7 +26,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                return await db.HandCard.Include(_ => _.Card).ThenInclude(_ => _.Suit).Where(_ => _.GameId == gameId && _.PlayerId == playerId).ToListAsync();
+                return await db.HandCard.Include(_ => _.Card).ThenInclude(_ => _.Suit).Include(_ => _.Card).ThenInclude(_ => _.Value).Where(_ => _.GameId == gameId && _.PlayerId == playerId).ToListAsync();
             }
         }
 

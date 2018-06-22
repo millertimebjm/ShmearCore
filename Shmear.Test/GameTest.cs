@@ -46,7 +46,7 @@ namespace Shmear.Test
         public async void GameTestAddPlayer()
         {
             var game = await GameService.CreateGame(options);
-            var player = GetNewPlayer($"GameTestAddPlayer");
+            var player = GenerateNewPlayer($"GameTestAddPlayer");
             player = await PlayerService.SavePlayer(options, player);
             var gameAddPlayerChange = await GameService.AddPlayer(options, game.Id, player.Id, 0);
 
@@ -58,7 +58,7 @@ namespace Shmear.Test
         public async void GameTestGetGamePlayer()
         {
             var game = await GameService.CreateGame(options);
-            var player = GetNewPlayer($"GameTestGetGamePlayer");
+            var player = GenerateNewPlayer($"GameTestGetGamePlayer");
             player = await PlayerService.SavePlayer(options, player);
             var gameAddPlayerChange = await GameService.AddPlayer(options, game.Id, player.Id, 0);
             var newPlayer = await GameService.GetGamePlayer(options, game.Id, player.Id);
@@ -72,7 +72,7 @@ namespace Shmear.Test
             var players = new List<Player>();
             for (int i = 0; i < 4; i++)
             {
-                var player = GetNewPlayer($"GameTestGetGamePlayers{i}");
+                var player = GenerateNewPlayer($"GameTestGetGamePlayers{i}");
                 player = await PlayerService.SavePlayer(options, player);
                 var gameAddPlayerChange = await GameService.AddPlayer(options, game.Id, player.Id, i);
                 players.Add(player);
@@ -93,7 +93,7 @@ namespace Shmear.Test
             var players = new List<Player>();
             for (int i = 0; i < 4; i++)
             {
-                var player = GetNewPlayer($"GameTestGetGamePlayers{i}");
+                var player = GenerateNewPlayer($"GameTestGetGamePlayers{i}");
                 player = await PlayerService.SavePlayer(options, player);
                 var gameAddPlayerChange = await GameService.AddPlayer(options, game.Id, player.Id, i);
                 players.Add(player);

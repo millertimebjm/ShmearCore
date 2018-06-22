@@ -17,7 +17,7 @@ namespace Shmear.Test
             options = optionsBuilder.Options;
         }
 
-        protected Player GetNewPlayer(string name)
+        protected Player GenerateNewPlayer(string name)
         {
             return new Player()
             {

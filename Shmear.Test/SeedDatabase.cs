@@ -45,12 +45,12 @@ namespace Shmear.Test
 
         private void SeedValues()
         {
-            Assert.True(CardService.SeedSuits(_contextOptions));
+            Assert.True(CardService.SeedValues(_contextOptions));
         }
 
         private void SeedCards()
         {
-            Assert.True(CardService.SeedSuits(_contextOptions));
+            Assert.True(CardService.SeedCards(_contextOptions));
         }
     }
 }
