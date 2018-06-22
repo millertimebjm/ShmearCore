@@ -107,10 +107,10 @@ namespace Shmear.Test
             }
         }
 
-        [Fact]
-        public async void GameTest()
-        {
-            GameService.SaveGamePlayer
-        }
+        //[Fact]
+        //public async void GameTest()
+        //{
+        //    GameService.SaveGamePlayer
+        //}
     }
 }
