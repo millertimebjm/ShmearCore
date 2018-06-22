@@ -17,7 +17,7 @@ namespace Shmear.Test
         [Fact]
         public async void PlayerTestSave()
         {
-            var player = GetNewPlayer("PlayerTestSave");
+            var player = GenerateNewPlayer("PlayerTestSave");
             player = await PlayerService.SavePlayer(options, player);
             Assert.True(player.Id > 0);
         }
@@ -25,7 +25,7 @@ namespace Shmear.Test
         [Fact]
         public async void PlayerTestGet()
         {
-            var player = GetNewPlayer("PlayerTestGet");
+            var player = GenerateNewPlayer("PlayerTestGet");
             player = await PlayerService.SavePlayer(options, player);
 
             var playerById = await PlayerService.GetPlayer(options, player.Id);
@@ -44,7 +44,7 @@ namespace Shmear.Test
         [Fact]
         public async void PlayerTestDelete()
         {
-            var player = GetNewPlayer("PlayerTestDelete");
+            var player = GenerateNewPlayer("PlayerTestDelete");
             player = await PlayerService.SavePlayer(options, player);
 
             var changeCount = await PlayerService.DeletePlayer(options, player.Id);

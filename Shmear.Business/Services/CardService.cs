@@ -57,16 +57,6 @@ namespace Shmear.Business.Services
             }
         }
 
-        //public static Suit GetSuit(int id)
-        //{
-        //    using (var db = new ShmearDataContext())
-        //    {
-        //        return db.Suits.Single(_ => _.Id == id);
-        //    }
-        //}
-
-
-
         public static Card GetCard(DbContextOptions<CardContext> options, SuitEnum suit, ValueEnum value)
         {
             using (var db = CardContextFactory.Create(options))
