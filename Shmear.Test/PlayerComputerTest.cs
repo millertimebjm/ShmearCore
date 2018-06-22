@@ -37,8 +37,7 @@ namespace Shmear.Test
             await BoardService.StartRound(options, game.Id);
             await BoardService.DealCards(options, game.Id);
 
-            var playerComputerService = new PlayerComputerService();
-            var wager = await playerComputerService.Wager(options, game.Id, players.First().Id);
+            var wager = await PlayerComputerService.Wager(options, game.Id, players.First().Id);
             Assert.True(wager.Value > 0 && wager.Value < 10);
         }
 

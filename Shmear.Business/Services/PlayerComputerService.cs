@@ -12,23 +12,8 @@ namespace Shmear.Business.Services
     {
         public double Aggressiveness = 50.0d;
         public int PointsToWinRound = 11;
-        public Dictionary<CardService.ValueEnum, double> valueWorth;
-
-        public PlayerComputerService()
-        {
-            valueWorth = new Dictionary<CardService.ValueEnum, double>();
-            valueWorth.Add(CardService.ValueEnum.Ace, 2.0);
-            valueWorth.Add(CardService.ValueEnum.King, 1.6);
-            valueWorth.Add(CardService.ValueEnum.Queen, 1.3);
-            valueWorth.Add(CardService.ValueEnum.Jack, 1.0);
-            valueWorth.Add(CardService.ValueEnum.Joker, 0.9);
-            valueWorth.Add(CardService.ValueEnum.Ten, 0.7);
-            valueWorth.Add(CardService.ValueEnum.Nine, 0.4);
-            valueWorth.Add(CardService.ValueEnum.Eight, 0.3);
-            valueWorth.Add(CardService.ValueEnum.Seven, 1.0);
-        }
-
-        public async Task<KeyValuePair<CardService.SuitEnum, double>> Wager(DbContextOptions<CardContext> options, int gameId, int playerId)
+        
+        public static async Task<KeyValuePair<CardService.SuitEnum, double>> Wager(DbContextOptions<CardContext> options, int gameId, int playerId)
         {
             var game = await GameService.GetGame(options, gameId);
             var gamePlayer = await GameService.GetGamePlayer(options, gameId, playerId);
@@ -40,8 +25,9 @@ namespace Shmear.Business.Services
             return new KeyValuePair<CardService.SuitEnum, double>(bestSuit, bestWorth);
         }
 
-        private async Task<Dictionary<CardService.SuitEnum, double>> CalculateHandValuePerSuit(DbContextOptions<CardContext> options, int gameId, int playerId)
+        private static async Task<Dictionary<CardService.SuitEnum, double>> CalculateHandValuePerSuit(DbContextOptions<CardContext> options, int gameId, int playerId)
         {
+            var valueWorth = LoadValueWorthDictionary();
             var handCards = await HandService.GetHand(options, gameId, playerId);
             var dictionary = new Dictionary<CardService.SuitEnum, double>();
             foreach (var suit in (CardService.SuitEnum[])Enum.GetValues(typeof(CardService.SuitEnum)))
@@ -60,13 +46,17 @@ namespace Shmear.Business.Services
             return dictionary;
         }
 
-        public async Task<int> PlayCard(DbContextOptions<CardContext> options, int gameId, int playerId)
+        public static async Task<int> PlayCard(DbContextOptions<CardContext> options, int gameId, int playerId)
         {
+            var valueWorth = LoadValueWorthDictionary();
+            var board = await BoardService.GetBoardByGameId(options, gameId);
+            var handCards = await HandService.GetHand(options, gameId, playerId);
+            var trickCards = await TrickService.GetTricks(options, gameId);
 
             return 0;
         }
 
-        private void SetAggressiveness(int playerSeat, int team1Points, int team2Points)
+        private static void SetAggressiveness(int playerSeat, int team1Points, int team2Points)
         {
             double difference = team1Points - team2Points;
             if (playerSeat == 1 || playerSeat == 3)
@@ -80,6 +70,21 @@ namespace Shmear.Business.Services
             // if the number is less than 0
                 // the closer to zero, the less aggressive
 
+        }
+
+        private static Dictionary<CardService.ValueEnum, double> LoadValueWorthDictionary()
+        {
+            var valueWorth = new Dictionary<CardService.ValueEnum, double>();
+            valueWorth.Add(CardService.ValueEnum.Ace, 2.0);
+            valueWorth.Add(CardService.ValueEnum.King, 1.6);
+            valueWorth.Add(CardService.ValueEnum.Queen, 1.3);
+            valueWorth.Add(CardService.ValueEnum.Jack, 1.0);
+            valueWorth.Add(CardService.ValueEnum.Joker, 0.9);
+            valueWorth.Add(CardService.ValueEnum.Ten, 0.7);
+            valueWorth.Add(CardService.ValueEnum.Nine, 0.4);
+            valueWorth.Add(CardService.ValueEnum.Eight, 0.3);
+            valueWorth.Add(CardService.ValueEnum.Seven, 1.0);
+            return valueWorth;
         }
     }
 }
