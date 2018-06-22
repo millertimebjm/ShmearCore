@@ -24,7 +24,6 @@ namespace Shmear.Web.Hubs
         {
             var optionsBuilder = new DbContextOptionsBuilder<CardContext>();
             optionsBuilder.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
-            //db = new CardContext(optionsBuilder.Options);
             options = optionsBuilder.Options;
         }
 
