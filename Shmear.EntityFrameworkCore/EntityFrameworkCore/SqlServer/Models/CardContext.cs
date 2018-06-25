@@ -21,6 +21,7 @@ namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
         public virtual DbSet<GamePlayer> GamePlayer { get; set; }
         public virtual DbSet<HandCard> HandCard { get; set; }
         public virtual DbSet<Player> Player { get; set; }
+        public virtual DbSet<PlayerComputer> PlayerComputer { get; set; }
         public virtual DbSet<Suit> Suit { get; set; }
         public virtual DbSet<Trick> Trick { get; set; }
         public virtual DbSet<TrickCard> TrickCard { get; set; }
@@ -28,11 +29,11 @@ namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-//            if (!optionsBuilder.IsConfigured)
-//            {
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-//                optionsBuilder.UseSqlServer("Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
-//            }
+            if (!optionsBuilder.IsConfigured)
+            {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -131,6 +132,25 @@ namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<PlayerComputer>(entity =>
+            {
+                entity.Property(e => e.Instance)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Version)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Player)
+                    .WithMany(p => p.PlayerComputer)
+                    .HasForeignKey(d => d.PlayerId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_PlayerComputer_Player");
             });
 
             modelBuilder.Entity<Suit>(entity =>

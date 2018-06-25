@@ -15,7 +15,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                return await db.Trick.Include(_ => _.TrickCard).Where(_ => _.GameId == gameId).ToListAsync();
+                return await db.Trick.Where(_ => _.GameId == gameId).ToListAsync();
             }
         }
 
@@ -29,7 +29,7 @@ namespace Shmear.Business.Services
 
         public static async Task<Trick> GetTrick(CardContext db, int trickId)
         {
-            return await db.Trick.Include(_ => _.TrickCard).SingleAsync(_ => _.Id == trickId);
+            return await db.Trick.SingleAsync(_ => _.Id == trickId);
         }
 
         public static async Task<Trick> CreateTrick(DbContextOptions<CardContext> options, int gameId)
@@ -55,7 +55,7 @@ namespace Shmear.Business.Services
             {
                 var trick = await GetTrick(db, trickId);
                 trick.CompletedDate = DateTime.Now;
-                trick.WinningPlayerId = BoardService.DetermineWinningPlayerId(options, trick.GameId, trick.TrickCard);
+                trick.WinningPlayerId = BoardService.DetermineWinningPlayerId(options, trick.GameId, await GetTrickCards(options, trickId));
                 await db.SaveChangesAsync();
 
                 return await GetTrick(options, trick.Id);
@@ -75,17 +75,30 @@ namespace Shmear.Business.Services
                     TrickId = trickId
                 };
                 await db.TrickCard.AddAsync(trickCard);
+                await db.SaveChangesAsync();
+            }
 
-                var trick = db.Trick.Single(_ => _.Id == trickId);
-                db.HandCard.Remove(await db.HandCard.SingleAsync(_ => _.GameId == trick.GameId && _.PlayerId == playerId && _.CardId == cardId));
+            var trick = await GetTrick(options, trickId);
+
+            using (var db = CardContextFactory.Create(options))
+            {
+                db.HandCard.Remove(db.HandCard.Single(_ => _.GameId == trick.GameId && _.PlayerId == playerId && _.CardId == cardId));
 
                 var gameId = trick.GameId;
                 var board = await db.Board.SingleAsync(_ => _.GameId == gameId);
                 if (board.TrumpSuitId == null || board.TrumpSuitId == 0)
                     board.TrumpSuitId = db.Card.Single(_ => _.Id == cardId).SuitId;
 
-                await db.SaveChangesAsync();
-                return await GetTrick(options, trick.Id);
+                db.SaveChanges();
+                return trick;
+            }
+        }
+
+        internal async static Task<IEnumerable<TrickCard>> GetAllTrickCards(DbContextOptions<CardContext> options, int gameId)
+        {
+            using (var db = CardContextFactory.Create(options))
+            {
+                return await db.TrickCard.Include(_ => _.Card).ThenInclude(_ => _.Suit).Include(_ => _.Card).ThenInclude(_ => _.Value).Where(_ => _.Trick.GameId == gameId).ToListAsync();
             }
         }
 
@@ -101,6 +114,14 @@ namespace Shmear.Business.Services
                 }
                 db.Trick.RemoveRange(tricks);
                 db.SaveChanges();
+            }
+        }
+
+        public async static Task<IEnumerable<TrickCard>> GetTrickCards(DbContextOptions<CardContext> options, int trickId)
+        {
+            using (var db = CardContextFactory.Create(options))
+            {
+                return await db.TrickCard.Where(_ => _.TrickId == trickId).ToListAsync();
             }
         }
     }

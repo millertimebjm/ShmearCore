@@ -249,23 +249,6 @@ namespace Shmear.Web.Hubs
             {
                 await BoardService.SetWager(options, gameId, player.Id, wager);
 
-                var board = await BoardService.GetBoardByGameId(options, gameId);
-                gamePlayers = (await GameService.GetGamePlayers(options, gameId)).OrderBy(_ => _.SeatNumber).ToArray();
-
-                // if all players have wagered or any player wagered 5
-                if (gamePlayers.All(_ => _.Wager != null) || gamePlayers.Any(_ => _.Wager == 5))
-                {
-                    var maxWagerPlayer = gamePlayers.Single(_ => _.Wager == (int)gamePlayers.Max(gp => gp.Wager));
-                    board.Team1Wager = 0;
-                    board.Team2Wager = 0;
-                    if (maxWagerPlayer.SeatNumber == 1 || maxWagerPlayer.SeatNumber == 3)
-                        board.Team1Wager = maxWagerPlayer.Wager;
-                    else
-                        board.Team2Wager = maxWagerPlayer.Wager;
-
-                    await BoardService.SaveBoard(options, board);
-                }
-
                 await SendCards(gameId);
                 await SendMessage(gameId, player.Name + " wagered " + wager);
             }
@@ -280,8 +263,8 @@ namespace Shmear.Web.Hubs
                 var player = await PlayerService.GetPlayer(options, Context.ConnectionId);
                 var handCards = await HandService.GetHand(options, gameId, player.Id);
                 var board = await BoardService.GetBoardByGameId(options, gameId);
-                var tricks = (await TrickService.GetTricks(options, gameId)).Single(_ => _.CompletedDate == null);
-                var trick = await TrickService.GetTrick(options, tricks.Id);
+                var trick = (await TrickService.GetTricks(options, gameId)).Single(_ => _.CompletedDate == null);
+                var trickCards = await TrickService.GetTrickCards(options, trick.Id);
                 var nextCardGamePlayer = await BoardService.GetNextCardPlayer(options, gameId, trick.Id);
 
                 if (nextCardGamePlayer.PlayerId == player.Id
@@ -292,7 +275,7 @@ namespace Shmear.Web.Hubs
                     await SendMessage(gameId, "<p>" + player.Name + " played " + card.Suit.Char + card.Value.Char + "</p>");
 
                     // Check to see if the Trick is over
-                    if (trick.TrickCard.Count() == 4)
+                    if (trickCards.Count() == 4)
                     {
                         await EndTrick(gameId, trick);
 
@@ -315,7 +298,8 @@ namespace Shmear.Web.Hubs
             var winningPlayerId = trick.WinningPlayerId;
             var winningPlayer = await PlayerService.GetPlayer(options, (int)winningPlayerId);
             var trickString = string.Empty;
-            foreach (var trickCard in trick.TrickCard)
+            var trickCards = await TrickService.GetTrickCards(options, trick.Id);
+            foreach (var trickCard in trickCards)
             {
                 var cardInTrick = await CardService.GetCardAsync(options, trickCard.CardId);
                 trickString += cardInTrick.Suit.Char + cardInTrick.Value.Char + " ";

@@ -171,7 +171,6 @@ namespace Shmear.Business.Services
             var board = await BoardService.GetBoardByGameId(options, gameId);
             var firstPlayerId = board.DealerPlayerId;
             var gamePlayers = (await GameService.GetGamePlayers(options, gameId)).OrderBy(_ => _.SeatNumber).ToList();
-            var trick = await TrickService.GetTrick(options, trickId);
             var completedTricks = (await TrickService.GetTricks(options, gameId)).Where(_ => _.CompletedDate != null);
             int trickStartingPlayer;
             if (completedTricks.Any())
@@ -184,7 +183,8 @@ namespace Shmear.Business.Services
                 trickStartingPlayer = gamePlayers.OrderByDescending(gp => gp.Wager).First().PlayerId;
             }
 
-            var nextPlayer = gamePlayers[(gamePlayers.FindIndex(_ => _.PlayerId == trickStartingPlayer) + trick.TrickCard.Count()) % 4];
+            var trickCards = await TrickService.GetTrickCards(options, trickId);
+            var nextPlayer = gamePlayers[(gamePlayers.FindIndex(_ => _.PlayerId == trickStartingPlayer) + trickCards.Count()) % 4];
             return nextPlayer;
         }
 
@@ -193,6 +193,28 @@ namespace Shmear.Business.Services
             var gamePlayer = await GameService.GetGamePlayer(options, gameId, playerId);
             gamePlayer.Wager = wager;
             await GameService.SaveGamePlayer(options, gamePlayer);
+
+            await CheckBoardWagers(options, gameId);
+        }
+
+        private static async Task CheckBoardWagers(DbContextOptions<CardContext> options, int gameId)
+        {
+            var board = await BoardService.GetBoardByGameId(options, gameId);
+
+            var gamePlayers = (await GameService.GetGamePlayers(options, gameId)).OrderBy(_ => _.SeatNumber).ToArray();
+            // if all players have wagered or any player wagered 5
+            if (gamePlayers.All(_ => _.Wager != null) || gamePlayers.Any(_ => _.Wager == 5))
+            {
+                var maxWagerPlayer = gamePlayers.Single(_ => _.Wager == (int)gamePlayers.Max(gp => gp.Wager));
+                board.Team1Wager = 0;
+                board.Team2Wager = 0;
+                if (maxWagerPlayer.SeatNumber == 1 || maxWagerPlayer.SeatNumber == 3)
+                    board.Team1Wager = maxWagerPlayer.Wager;
+                else
+                    board.Team2Wager = maxWagerPlayer.Wager;
+
+                await BoardService.SaveBoard(options, board);
+            }
         }
 
         public static async Task<RoundResult> EndRound(DbContextOptions<CardContext> options, int gameId)
@@ -219,17 +241,14 @@ namespace Shmear.Business.Services
             {
                 var board = await db.Board.SingleAsync(_ => _.GameId == gameId);
                 var gamePlayers = db.GamePlayer.Where(_ => _.GameId == gameId);
+                var tricks = db.Trick.Where(_ => _.GameId == gameId);
 
-                // How multiple Includes and sub-ThenIncludes work:
-                // https://github.com/aspnet/EntityFrameworkCore/issues/4716
-                var tricks = db.Trick
-                    .Include(_ => _.TrickCard).ThenInclude(_ => _.Card).ThenInclude(_ => _.Suit)
-                    .Include(_ => _.TrickCard).ThenInclude(_ => _.Card).ThenInclude(_ => _.Value)
-                    .Where(_ => _.GameId == gameId);
+                var highTrickCard = db.TrickCard.Where(_ => _.Card.SuitId == board.TrumpSuitId).OrderByDescending(_ => _.Card.Value.Sequence).First();
+                var highTrickSeatNumber = gamePlayers.Single(_ => _.PlayerId == highTrickCard.PlayerId).SeatNumber;
 
-                var highCard = tricks.SelectMany(_ => _.TrickCard).Where(_ => _.Trick.GameId == gameId).Select(_ => _.Card).Where(_ => _.SuitId == board.TrumpSuitId).OrderByDescending(_ => _.Value.Sequence).First();
-                var highTrick = tricks.Single(_ => _.TrickCard.Any(card => card.Card.SuitId.Equals(board.TrumpSuitId) && card.Card.Value.Id == highCard.ValueId));
-                var highTrickSeatNumber = (await gamePlayers.SingleAsync(_ => _.PlayerId == highTrick.WinningPlayerId)).SeatNumber;
+                //var highCard = tricks.SelectMany(_ => _.TrickCard).Where(_ => _.Trick.GameId == gameId).Select(_ => _.Card).Where(_ => _.SuitId == board.TrumpSuitId).OrderByDescending(_ => _.Value.Sequence).First();
+                //var highTrick = tricks.Single(_ => _.TrickCard.Any(card => card.Card.SuitId.Equals(board.TrumpSuitId) && card.Card.Value.Id == highCard.ValueId));
+                //var highTrickSeatNumber = (await gamePlayers.SingleAsync(_ => _.PlayerId == highTrick.WinningPlayerId)).SeatNumber;
                 if (team1PlayerSeats.Contains(highTrickSeatNumber))
                     //team1Points++;
                     pointList.Add(new Point()
@@ -289,19 +308,26 @@ namespace Shmear.Business.Services
                         PointType = PointTypeEnum.Low,
                     });
 
-                var team1RoundCardScore = 0;
-                var team2RoundCardScore = 0;
-                foreach (var gamePlayer in gamePlayers)
-                {
-                    var points = 0;
-                    var winningTricks = tricks.SelectMany(_ => _.TrickCard).Where(_ => _.Trick.GameId == gameId && _.Trick.WinningPlayerId == gamePlayer.PlayerId).Select(_ => _.Card.Value.Points).ToList();
-                    if (winningTricks.Any())
-                        points = winningTricks.Sum();
-                    if (team1PlayerSeats.Contains(gamePlayer.SeatNumber))
-                        team1RoundCardScore += points;
-                    if (team2PlayerSeats.Contains(gamePlayer.SeatNumber))
-                        team2RoundCardScore += points;
-                }
+
+                var winningTrickCards = db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => new KeyValuePair<int, int>(_.SeatNumber, db.TrickCard.Where(tc => tc.PlayerId == _.PlayerId).Sum(tc => tc.Card.Value.Points)));
+                var team1RoundCardScore = winningTrickCards.Where(_ => team1PlayerSeats.Contains(_.Key)).Sum(_ => _.Value);
+                var team2RoundCardScore = winningTrickCards.Where(_ => team2PlayerSeats.Contains(_.Key)).Sum(_ => _.Value);
+
+                //var team1RoundCardScore = 0;
+                //var team2RoundCardScore = 0;
+                //foreach (var gamePlayer in gamePlayers)
+                //{
+                //    var points = 0;
+                //    var winningTricks = tricks.SelectMany(_ => _.TrickCard).Where(_ => _.Trick.GameId == gameId && _.Trick.WinningPlayerId == gamePlayer.PlayerId).Select(_ => _.Card.Value.Points).ToList();
+                //    if (winningTricks.Any())
+                //        points = winningTricks.Sum();
+                //    if (team1PlayerSeats.Contains(gamePlayer.SeatNumber))
+                //        team1RoundCardScore += points;
+                //    if (team2PlayerSeats.Contains(gamePlayer.SeatNumber))
+                //        team2RoundCardScore += points;
+                //}
+
+
 
                 var wagerSeat = gamePlayers.OrderByDescending(_ => _.Wager).First().SeatNumber;
                 if (team1RoundCardScore > team2RoundCardScore)

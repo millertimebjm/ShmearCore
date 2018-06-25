@@ -10,6 +10,7 @@ namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
             Board = new HashSet<Board>();
             GamePlayer = new HashSet<GamePlayer>();
             HandCard = new HashSet<HandCard>();
+            PlayerComputer = new HashSet<PlayerComputer>();
             Trick = new HashSet<Trick>();
             TrickCard = new HashSet<TrickCard>();
         }
@@ -22,6 +23,7 @@ namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
         public ICollection<Board> Board { get; set; }
         public ICollection<GamePlayer> GamePlayer { get; set; }
         public ICollection<HandCard> HandCard { get; set; }
+        public ICollection<PlayerComputer> PlayerComputer { get; set; }
         public ICollection<Trick> Trick { get; set; }
         public ICollection<TrickCard> TrickCard { get; set; }
     }
