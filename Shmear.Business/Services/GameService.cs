@@ -184,7 +184,6 @@ namespace Shmear.Business.Services
                 var gamePlayer = await db.GamePlayer.Include(_ => _.Player).SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
                 var player = gamePlayer.Player;
 
-                //var game = await db.Game.SingleAsync(_ => _.Id == gameId);
                 var cards = await HandService.GetHand(options, gameId, player.Id);
                 var tricks = await TrickService.GetTricks(options, gameId);
                 var trick = tricks.SingleOrDefault(_ => _.CompletedDate == null);
@@ -196,10 +195,7 @@ namespace Shmear.Business.Services
                 var board = await BoardService.GetBoard(options, boardId);
                 var trumpSuitId = board.TrumpSuitId ?? 0;
                 var card = await CardService.GetCardAsync(options, cardId);
-
-                //if (!cards.Select(_ => _.CardId).Contains(card.Id))
-                //    throw new Exception("Player does not have that card in their hand.");
-
+                
                 if (trumpSuitId == 0)
                 {
                     if (card.Value.Name == CardService.ValueEnum.Joker.ToString())
@@ -209,9 +205,10 @@ namespace Shmear.Business.Services
                 }
                 else
                 {
-                    if (trick.TrickCard.Any())
+                    var trickCards = await TrickService.GetTrickCards(options, trick.Id);
+                    if (trick != null && trickCards.Any())
                     {
-                        var cardLed = (await CardService.GetCardAsync(options, trick.TrickCard.First().CardId));
+                        var cardLed = (await CardService.GetCardAsync(options, trickCards.First().CardId));
                         var suitLedId = cardLed.SuitId;
                         if (card.SuitId == trumpSuitId)
                             return true;

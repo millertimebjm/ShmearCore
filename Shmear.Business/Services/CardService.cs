@@ -185,6 +185,14 @@ namespace Shmear.Business.Services
             return true;
         }
 
+        public async static Task<Card> GetCard(DbContextOptions<CardContext> options, int suitId, ValueEnum valueEnum)
+        {
+            using (var db = CardContextFactory.Create(options))
+            {
+                return await db.Card.Include(_ => _.Suit).Include(_ => _.Value).SingleAsync(_ => _.SuitId == suitId && _.Value.Name == valueEnum.ToString());
+            }
+        }
+
         public static bool SeedCards(DbContextOptions<CardContext> options)
         {
             using (var db = CardContextFactory.Create(options))

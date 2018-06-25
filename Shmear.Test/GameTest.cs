@@ -1,4 +1,5 @@
-﻿using Shmear.Business.Services;
+﻿using Microsoft.EntityFrameworkCore;
+using Shmear.Business.Services;
 using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
 using System;
 using System.Collections.Generic;
@@ -107,10 +108,103 @@ namespace Shmear.Test
             }
         }
 
-        //[Fact]
-        //public async void GameTest()
-        //{
-        //    GameService.SaveGamePlayer
-        //}
+        [Fact]
+        public async void GameTestEndRound()
+        {
+            var seedDatabase = new SeedDatabase();
+            seedDatabase.RunWithOptions(options);
+
+            var game = await GameService.CreateGame(options);
+            var players = new List<Player>();
+            for (int i = 0; i < 4; i++)
+            {
+                var player = GenerateNewPlayer($"PlayerComputerTestWagerBest{i}");
+                await PlayerService.SavePlayer(options, player);
+                await GameService.AddPlayer(options, game.Id, player.Id, i);
+                var gamePlayer = await GameService.GetGamePlayer(options, game.Id, player.Id);
+                gamePlayer.Ready = true;
+                await GameService.SaveGamePlayer(options, gamePlayer);
+                players.Add(player);
+            }
+            await GameService.StartGame(options, game.Id);
+            await BoardService.StartRound(options, game.Id);
+            await BoardService.DealCards(options, game.Id);
+            
+            // Set wager 5 so that we can guess the resulting end points to be either 5 or -5
+            var gamePlayerNextWager = await BoardService.GetNextWagerPlayer(options, game.Id);
+            await BoardService.SetWager(options, game.Id, gamePlayerNextWager.PlayerId, 5);
+            var board = await BoardService.GetBoardByGameId(options, game.Id);
+
+            for (int cardsPlayedCount = 0; cardsPlayedCount < 6; cardsPlayedCount++)
+            {
+                var trick = await TrickService.CreateTrick(options, game.Id);
+                for (int playersPlayedCount = 0; playersPlayedCount < 4; playersPlayedCount++)
+                {
+                    var gamePlayerNextCard = await BoardService.GetNextCardPlayer(options, game.Id, trick.Id);
+                    if (cardsPlayedCount == 0 && playersPlayedCount == 0)
+                    {
+                        var firstCard = await PlayerComputerService.PlayCard(options, game.Id, gamePlayerNextCard.PlayerId);
+                        trick = await TrickService.PlayCard(options, trick.Id, gamePlayerNextCard.Id, firstCard.Id);
+                        continue;
+                    }
+
+                    var handCards = await HandService.GetHand(options, game.Id, gamePlayerNextCard.PlayerId);
+                    foreach (var handCard in handCards)
+                    {
+                        if (await GameService.ValidCardPlay(options, game.Id, board.Id, gamePlayerNextCard.PlayerId, handCard.CardId))
+                        {
+                            trick = await TrickService.PlayCard(options, trick.Id, gamePlayerNextCard.Id, handCard.CardId);
+                            break;
+                        }
+                    }
+                    
+                }
+                await TrickService.EndTrick(options, trick.Id);
+            }
+
+
+            var roundResult = await BoardService.EndRound(options, game.Id);
+            Assert.True(roundResult.Team1RoundChange == 5 || roundResult.Team1RoundChange == -5);
+        }
+
+        [Fact]
+        public async void GameTestEfCoreError()
+        {
+            using (var db = CardContextFactory.Create(options))
+            {
+                //var seedDatabase = new SeedDatabase();
+                //seedDatabase.RunWithOptions(options);
+
+                var card = new Card();
+                db.Card.Add(card);
+                db.SaveChanges();
+                var game = new Game();
+                db.Game.Add(game);
+                var player = new Player();
+                db.Player.Add(player);
+                var gamePlayer = new GamePlayer()
+                {
+                    GameId = game.Id
+                };
+                db.GamePlayer.Add(gamePlayer);
+                var trick = new Trick()
+                {
+                    GameId = game.Id,
+                };
+                db.Trick.Add(trick);
+                var trickCard = new TrickCard()
+                {
+                    PlayerId = player.Id,                    
+                    TrickId = trick.Id,
+                    CardId = db.Card.First().Id,
+                };
+                db.TrickCard.Add(trickCard);
+                db.SaveChanges();
+                var trick2 = db.Trick.Include(_ => _.TrickCard).First();
+                
+            }
+
+            
+        }
     }
 }
