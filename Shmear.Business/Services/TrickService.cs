@@ -82,7 +82,8 @@ namespace Shmear.Business.Services
 
             using (var db = CardContextFactory.Create(options))
             {
-                db.HandCard.Remove(db.HandCard.Single(_ => _.GameId == trick.GameId && _.PlayerId == playerId && _.CardId == cardId));
+                HandCard handCard = db.HandCard.Single(_ => _.GameId == trick.GameId && _.PlayerId == playerId && _.CardId == cardId);
+                db.HandCard.Remove(handCard);
 
                 var gameId = trick.GameId;
                 var board = await db.Board.SingleAsync(_ => _.GameId == gameId);
@@ -98,7 +99,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                return await db.TrickCard.Include(_ => _.Card).ThenInclude(_ => _.Suit).Include(_ => _.Card).ThenInclude(_ => _.Value).Where(_ => _.Trick.GameId == gameId).ToListAsync();
+                return await db.TrickCard.Include(tc => tc.Card).ThenInclude(c => c.Suit).Include(tc => tc.Card).ThenInclude(c => c.Value).Where(_ => _.Trick.GameId == gameId).ToListAsync();
             }
         }
 

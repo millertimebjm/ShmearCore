@@ -24,7 +24,8 @@ namespace Shmear.Business.Services
         private static async Task<KeyValuePair<CardService.SuitEnum, double>> CalculateBestHandValuePerSuit(DbContextOptions<CardContext> options, int gameId, int playerId)
         {
             var suitWorth = await CalculateHandValuePerSuit(options, gameId, playerId);
-            var bestSuit = suitWorth.Keys.Single(_ => suitWorth[_] == suitWorth.Values.Max());
+            // Use first in case there is a tie
+            var bestSuit = suitWorth.Keys.First(_ => suitWorth[_] == suitWorth.Values.Max());
             var bestWorth = suitWorth[bestSuit];
 
             return new KeyValuePair<CardService.SuitEnum, double>(bestSuit, bestWorth);
