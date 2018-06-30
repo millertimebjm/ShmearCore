@@ -45,7 +45,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                return await db.Card.Include(_ => _.Suit).Include(_ => _.Value).SingleAsync(_ => _.Id == id);
+                return await db.Card.Include(s => s.Suit).Include(_ => _.Value).SingleAsync(_ => _.Id == id);
             }
         }
 
@@ -53,7 +53,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                return db.Card.Include(_ => _.Suit).Include(_ => _.Value).Single(_ => _.Id == id);
+                return db.Card.Include(s => s.Suit).Include(_ => _.Value).Single(_ => _.Id == id);
             }
         }
 
@@ -189,7 +189,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                return await db.Card.Include(_ => _.Suit).Include(_ => _.Value).SingleAsync(_ => _.SuitId == suitId && _.Value.Name == valueEnum.ToString());
+                return await db.Card.Include(s => s.Suit).Include(_ => _.Value).SingleAsync(_ => _.SuitId == suitId && _.Value.Name == valueEnum.ToString());
             }
         }
 

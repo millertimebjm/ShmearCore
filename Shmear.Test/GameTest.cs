@@ -144,7 +144,7 @@ namespace Shmear.Test
                     if (cardsPlayedCount == 0 && playersPlayedCount == 0)
                     {
                         var firstCard = await PlayerComputerService.PlayCard(options, game.Id, gamePlayerNextCard.PlayerId);
-                        trick = await TrickService.PlayCard(options, trick.Id, gamePlayerNextCard.Id, firstCard.Id);
+                        trick = await TrickService.PlayCard(options, trick.Id, gamePlayerNextCard.PlayerId, firstCard.Id);
                         continue;
                     }
 
@@ -153,7 +153,7 @@ namespace Shmear.Test
                     {
                         if (await GameService.ValidCardPlay(options, game.Id, board.Id, gamePlayerNextCard.PlayerId, handCard.CardId))
                         {
-                            trick = await TrickService.PlayCard(options, trick.Id, gamePlayerNextCard.Id, handCard.CardId);
+                            trick = await TrickService.PlayCard(options, trick.Id, gamePlayerNextCard.PlayerId, handCard.CardId);
                             break;
                         }
                     }
@@ -168,7 +168,7 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void GameTestEfCoreError()
+        public void GameTestEfCoreError()
         {
             using (var db = CardContextFactory.Create(options))
             {
@@ -200,7 +200,8 @@ namespace Shmear.Test
                 };
                 db.TrickCard.Add(trickCard);
                 db.SaveChanges();
-                var trick2 = db.Trick.Include(_ => _.TrickCard).First();
+                Assert.Throws<KeyNotFoundException>(() => db.Trick.Include(_ => _.TrickCard).First());
+                var trick2 = db.Trick.Include(tc => tc.TrickCard).First();
                 
             }
 
