@@ -55,7 +55,8 @@ namespace Shmear.Business.Services
             {
                 var trick = await GetTrick(db, trickId);
                 trick.CompletedDate = DateTime.Now;
-                trick.WinningPlayerId = BoardService.DetermineWinningPlayerId(options, trick.GameId, await GetTrickCards(options, trickId));
+                var trickCards = await GetTrickCards(options, trickId);
+                trick.WinningPlayerId = BoardService.DetermineWinningPlayerId(options, trick.GameId, trickCards);
                 await db.SaveChangesAsync();
 
                 return await GetTrick(options, trick.Id);
