@@ -60,8 +60,8 @@ namespace Shmear.Business.Services
             var handCards = await HandService.GetHand(options, gameId, playerId);
             var tricks = await TrickService.GetTricks(options, gameId);
             var trickCards = await TrickService.GetAllTrickCards(options, gameId);
-            
-            
+
+
             // If first trick, determine best card to play as first card
             if (tricks.Count() == 1 && tricks.Single().TrickCard.Count() == 0)
             {
@@ -84,7 +84,7 @@ namespace Shmear.Business.Services
             var latestTrick = tricks.OrderByDescending(_ => _.CreatedDate).First();
             if (!trickCards.Any(_ => _.TrickId == latestTrick.Id))
             {
-                // check to see if jack or joker haven't been played
+                // check to see if jack of trump suit or joker haven't been played
                 var jackOrJoker = trickCards.Where(_ => (_.Card.SuitId == board.TrumpSuitId && _.Card.Value.Name == CardService.ValueEnum.Jack.ToString()) || _.Card.Value.Name == CardService.ValueEnum.Joker.ToString());
                 if (!jackOrJoker.Any())
                 {
@@ -92,23 +92,30 @@ namespace Shmear.Business.Services
                     var jackTrumpCard = await CardService.GetCard(options, (int)board.TrumpSuitId, CardService.ValueEnum.Jack);
                     var beatJackOrJoker = handCards.Where(_ => _.Card.Value.Sequence > jackTrumpCard.Value.Sequence);
                     if (beatJackOrJoker.Any())
-                    return beatJackOrJoker.OrderByDescending(_ => _.Card.Value.Sequence).First().Card;
+                        return beatJackOrJoker.OrderByDescending(_ => _.Card.Value.Sequence).First().Card;
                 }
                 else
                 {
                     // Play highest card of non-trump suit that isn't a 10
-                    //var highestNonTrumpNonTenCard = validCards.Where(_ => _.).OrderByDescending();
+                    var highestNonTrumpNonTenCard = validCards.Where(_ => _.SuitId != (int)board.TrumpSuitId && _.Value.Name == CardService.ValueEnum.Ten.ToString()).OrderByDescending(_ => _.Value.Sequence).FirstOrDefault();
+                    if (highestNonTrumpNonTenCard != null)
+                        return highestNonTrumpNonTenCard;
                 }
             }
+            else
+            {
+                // if not your lead
+                // if your team isn't winning and you can't win, throw lowest card (10 is rated as lowest value option)
+                var winningCard = BoardService.DetermineWinningCard(options, gameId, trickCards);
 
-            // if you can't win, throw lowest card
+                // if your team is winning
+                    
 
+                
+            }
 
             var trumpSuitId = board.TrumpSuitId;
             //var latestTrick = tricks.OrderByDescending(_ => _.CreatedDate);
-
-
-            
 
             return null;
         }

@@ -13,6 +13,24 @@ namespace Shmear.Business.Services
 {
     public class BoardService
     {
+        public static int[] GetTeam1PlayerSeats()
+        {
+            return new[]
+            {
+                1,
+                3
+            };
+        }
+
+        public static int[] GetTeam2PlayerSeats()
+        {
+            return new[]
+            {
+                2,
+                4
+            };
+        }
+
         public async static Task StartRound(DbContextOptions<CardContext> options, int gameId)
         {
             await CreateBoardIfNotExists(options, gameId);
@@ -226,16 +244,8 @@ namespace Shmear.Business.Services
         public static async Task<RoundResult> DeterminePointsByTeam(DbContextOptions<CardContext> options, int gameId)
         {
             var pointList = new List<Point>();
-            var team1PlayerSeats = new[]
-            {
-                1,
-                3
-            };
-            var team2PlayerSeats = new[]
-            {
-                2,
-                4
-            };
+            var team1PlayerSeats = GetTeam1PlayerSeats();
+            var team2PlayerSeats = GetTeam2PlayerSeats();
 
             using (var db = CardContextFactory.Create(options))
             {
@@ -403,7 +413,7 @@ namespace Shmear.Business.Services
             return null;
         }
 
-        public static int DetermineWinningPlayerId(DbContextOptions<CardContext> options, int gameId, IEnumerable<TrickCard> trickCards)
+        public static Card DetermineWinningCard(DbContextOptions<CardContext> options, int gameId, IEnumerable<TrickCard> trickCards)
         {
             using (var db = CardContextFactory.Create(options))
             {
@@ -431,8 +441,18 @@ namespace Shmear.Business.Services
                     if (index == 4)
                         highestCard = true;
                 } while (!highestCard);
-                
-                return trickCards.Single(_ => _.CardId == cardTemp.Id).PlayerId;
+
+                return cardTemp;
+            }
+        }
+
+        public static int DetermineWinningPlayerId(DbContextOptions<CardContext> options, int gameId, IEnumerable<TrickCard> trickCards)
+        {
+            var highestCard = DetermineWinningCard(options, gameId, trickCards);
+            using (var db = CardContextFactory.Create(options))
+            {
+                var trickCard = trickCards.Single(_ => _.CardId == highestCard.Id);
+                return trickCard.PlayerId;
             }
         }
 
