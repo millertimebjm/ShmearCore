@@ -96,6 +96,8 @@ Since the application is designed to be a card game, the most basic model in the
 
 http://erdraw.com/graphs/859618422978/edit
 
+![picture](InformationView_DatabaseSchema.png)
+
 * Game is the top-level object that contains the points that each team has in each round.  Currently, these points will reset after each round so the history of each round is not maintained.
 * Board contains information about each hand that is dealt.  It will remember the wager so that each hand can be scored properly. 
 * Player records details about each player.  The data recorded here can determine how long it's been since the Player has input something into the game.  Also, if the Player reconnects, the ConnectionId can be used to determine which game the Player was previously connected to in order to allow for reconnect.  
@@ -140,13 +142,15 @@ npm install @aspnet/signalr
 
 The Business Layer contains static services.  The reason for static services is because nothing is stored in between requests.  The Business Layer contains all the logic for what is needed to be displayed on the frontend.  The only reason the Presentation Layer needs a reference to the Data Layer is to have knowledge of the data layer models.  Though the models could be duplicated in the Business Layer to remove that reference, I do not see this dependency as a liability, since the Data Layer models would simply need to be duplicated in the Business Layer without any benefit to functionality.  
 
+![picture](FunctionalView_BusinessLayer.png)
+
 #### Data Layer
 
 Refer to the Information View.
 
 ## Authors
 
-* **Brandon Miller** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Brandon Miller** - *Initial work*
 
 ## License
 
