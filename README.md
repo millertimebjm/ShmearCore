@@ -138,6 +138,8 @@ npm init -y
 npm install @aspnet/signalr
 ```
 
+![picture](FunctionalView_Presentation.png)
+
 #### Business Layer
 
 The Business Layer contains static services.  The reason for static services is because nothing is stored in between requests.  The Business Layer contains all the logic for what is needed to be displayed on the frontend.  The only reason the Presentation Layer needs a reference to the Data Layer is to have knowledge of the data layer models.  Though the models could be duplicated in the Business Layer to remove that reference, I do not see this dependency as a liability, since the Data Layer models would simply need to be duplicated in the Business Layer without any benefit to functionality.  
