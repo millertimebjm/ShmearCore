@@ -20,7 +20,7 @@ ShmearCore is a proof-of-concept project for using the latest ASP.NET Core (2.1 
 
 ## Rules of the Game
 
-* Four Players in the game, teams are determined by alternating Players, meaning the Players to your right and left are on the opposite team.  
+* Four Players in the game, teams are determined by alternating Players, meaning the Players to your right and left are on the opposing team.  
 * 33 Cards are included in the game
 * Cards + order of importance (power): Ace, King, Queen, Jack, Joker, 10, 9, 8, 7; All four Suits + Joker; Joker counts as trump suit
 * After 6 cards are dealt to each Player at the beginning of each round, meaning that 11 cards are not dealt each round, each Player bids, starting with the first player dealt cards and continuing clockwise.  Each Player can either Pass, or outbid the current bid.  Five is the highest bid and if it is wagered by a Player, bidding is over.  The Player with the highest bid plays the first Card.  
