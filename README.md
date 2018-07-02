@@ -92,7 +92,7 @@ The Server also mantains the list of Clients and allows for the Server to have t
 
 #### Business Layer
 
-The Business Layer contains static services.  The reason for static services is because nothing is stored in between requests.  The Business Layer contains all the logic for what is needed to be displayed on the frontend.  The only reason the Presentation Layer needs a reference to the Data Layer is to have knowledge of the data layer models.  Though the models could be duplicated in the Business Layer to remove that reference, I do not see this dependency as a liability, since the Data Layer models would simply need to be duplicated in the Business Layer without any benefit to functionality.  
+The Business Layer contains static services.  The reason for static services is because nothing is stored in between requests.  The Business Layer contains all the CRUD logic to modify data based on requests from the frontend as well as getting the data and providing it in a format for the frontend to be able to display the current state.  The only reason the Presentation Layer needs a reference to the Data Layer is to have knowledge of the data layer models.  Though the models could be duplicated in the Business Layer to remove that reference, I do not see this dependency as a liability, since the Data Layer models would simply be duplicated in the Business Layer without any benefit to functionality.  
 
 ![picture](FunctionalView_BusinessLayer.png)
 
@@ -127,7 +127,8 @@ Example of C# Entity Framework Core query
 using (var db = new CustomerDataContext()) 
 {
     var customers = db.Customers.ToList();
-    // Data is accessible though the Customers as a List object automatically generated to be a replica of the database table
+    // Data is accessible though the Customers as a List object 
+    // automatically generated to be a replica of the database table
 }
 ```
 
