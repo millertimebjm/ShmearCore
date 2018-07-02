@@ -33,7 +33,7 @@ ShmearCore is a proof-of-concept project for using the latest ASP.NET Core (2.1 
     * Jack of Trump Suit (Player who wins the Trick)
     * Joker (Player who wins the Trick)
     * "Game" is determined by counting, for each team, the score based on the Value of each Card accumulated in Tricks won for that team.  If there is a tie, no points are awarded.
-* Points must equal or exceed the bid from the winning team.  If the team with the winning bid doesn't meet or exceed their bid with points earned, then they "Bust", meaning do not keep any points they earned and they earn negative points of their bid.  If the team with the winning bid meet or exceed the winning bid with the points earned, they keep all the points they earned.  The team that did not bid keeps the points they earned even though they didn't win the bid.  
+* Points must equal or exceed the bid from the winning team.  If the team with the winning bid doesn't meet or exceed their bid with points earned, then they "Bust", meaning they do not keep any points they earned and they earn negative points of their bid.  If the team with the winning bid meet or exceed the winning bid with the points earned, they keep all the points they earned.  The team that did not bid keeps the points they earned even though they didn't win the bid.  
 * Winner of each round is determined by the first team to reach 11 points.  "Bidder goes out" means that the team that won the bid for that Hand is allowed to finish the Hand and will win if they reach 11 even though the team that didn't win the bid earns 11 points before the end of the Hand.  
 
 ## Architecture
