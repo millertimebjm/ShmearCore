@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Shmear.Test
@@ -111,6 +112,15 @@ namespace Shmear.Test
         [Fact]
         public async void GameTestEndRound()
         {
+            var gameId = await PlayGameUntilEndRound();
+
+            var game = await GameService.GetGame(options, gameId);
+            var roundResult = await BoardService.EndRound(options, game.Id);
+            Assert.True(roundResult.Team1RoundChange == 5 || roundResult.Team1RoundChange == -5);
+        }
+
+        private async Task<int> PlayGameUntilEndRound()
+        {
             var seedDatabase = new SeedDatabase();
             seedDatabase.RunWithOptions(options);
 
@@ -129,7 +139,7 @@ namespace Shmear.Test
             await GameService.StartGame(options, game.Id);
             await BoardService.StartRound(options, game.Id);
             await BoardService.DealCards(options, game.Id);
-            
+
             // Set wager 5 so that we can guess the resulting end points to be either 5 or -5
             var gamePlayerNextWager = await BoardService.GetNextWagerPlayer(options, game.Id);
             await BoardService.SetWager(options, game.Id, gamePlayerNextWager.PlayerId, 5);
@@ -157,14 +167,12 @@ namespace Shmear.Test
                             break;
                         }
                     }
-                    
+
                 }
                 await TrickService.EndTrick(options, trick.Id);
             }
 
-
-            var roundResult = await BoardService.EndRound(options, game.Id);
-            Assert.True(roundResult.Team1RoundChange == 5 || roundResult.Team1RoundChange == -5);
+            return game.Id;
         }
 
         [Fact]
@@ -194,7 +202,7 @@ namespace Shmear.Test
                 db.Trick.Add(trick);
                 var trickCard = new TrickCard()
                 {
-                    PlayerId = player.Id,                    
+                    PlayerId = player.Id,
                     TrickId = trick.Id,
                     CardId = db.Card.First().Id,
                 };
@@ -202,10 +210,48 @@ namespace Shmear.Test
                 db.SaveChanges();
                 Assert.Throws<KeyNotFoundException>(() => db.Trick.Include(_ => _.TrickCard).First());
                 var trick2 = db.Trick.Include(tc => tc.TrickCard).First();
-                
             }
-
-            
         }
+
+        //[Fact]
+        //public async void GameTestPoints()
+        //{
+        //    var gameId = await PlayGameUntilEndRound();
+
+        //    var game = await GameService.GetGame(options, gameId);
+        //    var roundResult = await BoardService.EndRound(options, game.Id);
+        //    using (var db = CardContextFactory.Create(options))
+        //    {
+        //        var tricks = db.Trick
+        //            .Include(t => t.TrickCard).ThenInclude(tc => tc.Card).ThenInclude(c => c.Suit)
+        //            .Include(t => t.TrickCard).ThenInclude(tc => tc.Card).ThenInclude(c => c.Value)
+        //            .Include(t => t.Game.Board)
+        //            .Include(t => t.WinningPlayer).ThenInclude(p => p.GamePlayer)
+        //            .Include(t => t.TrickCard).ThenInclude(tc => tc.Trick)
+        //            .Where(t => t.GameId == game.Id);
+        //        var team1PlayerSeats = BoardService.GetTeam1PlayerSeats();
+
+
+        //        var trickCards = tricks.SelectMany(t => t.TrickCard);
+        //        var trumpCards = trickCards.Where(tc => tc.Card.SuitId == tc.Trick.Game.Board.Single().TrumpSuitId);
+        //        var orderedTrumpCards = trumpCards.OrderByDescending(tc => tc.Card.Value.Sequence);
+        //        var seatNumber = orderedTrumpCards.First().Trick.WinningPlayer.GamePlayer.Single(gp => gp.GameId == gameId).SeatNumber;
+
+
+        //        var highCardSeatNumber = tricks.Where(_ => _.TrickCard.Any(.Card.SuitId == _.Game.Board.Single().TrumpSuitId)).Where(_ => _.Card.SuitId == _.Trick.Game.Board.Single().TrumpSuitId).OrderByDescending(tc => tc.Card.Value.Sequence).First().Trick.WinningPlayer.GamePlayer.Single(_ => _.GameId == gameId).SeatNumber;
+        //        if (team1PlayerSeats.Contains(highCardSeatNumber))
+        //            Assert.Contains(roundResult.Team1Points, _ => _.PointType == Business.Models.PointTypeEnum.High);
+        //        else
+        //            Assert.Contains(roundResult.Team2Points, _ => _.PointType == Business.Models.PointTypeEnum.High);
+
+        //        //var highCardTeam = tricks.Single(_ => _.Id == _.TrickCard.Where(tc => tc.Card.SuitId == _.Game.Board.Single().TrumpSuitId).OrderByDescending(tc => tc.Card.Value.Sequence).First().TrickId).WinningPlayer.GamePlayer.Single(_ => _.GameId == gameId).SeatNumber;
+        //        //var jackCardTeam = tricks.Single(_ => _.Id == _.TrickCard.Single(tc => tc.Card.SuitId == _.Game.Board.Single().TrumpSuitId && tc.Card.Value.Name == CardService.ValueEnum.Jack.ToString()).TrickId).WinningPlayer.GamePlayer.Single(_ => _.GameId == gameId).SeatNumber;
+        //        //if (tricks.Any(_ => _.TrickCard.Any(tc => tc.Card.Value.Name == CardService.ValueEnum.Joker.ToString())))
+        //        //{
+        //        //    var jokerCardTeam = tricks.Single(_ => _.Id == _.TrickCard.Single(tc => tc.Card.SuitId == _.Game.Board.Single().TrumpSuitId && tc.Card.Value.Name == CardService.ValueEnum.Joker.ToString()).TrickId).WinningPlayer.GamePlayer.Single(_ => _.GameId == gameId).SeatNumber;
+        //        //}
+        //        //var lowCardTeam = tricks.Single();
+        //    }
+        //}
     }
 }

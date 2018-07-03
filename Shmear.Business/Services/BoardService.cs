@@ -17,8 +17,8 @@ namespace Shmear.Business.Services
         {
             return new[]
             {
-                1,
-                3
+                0,
+                2
             };
         }
 
@@ -26,8 +26,8 @@ namespace Shmear.Business.Services
         {
             return new[]
             {
-                2,
-                4
+                1,
+                3
             };
         }
 
@@ -255,19 +255,13 @@ namespace Shmear.Business.Services
 
                 var highTrickCard = db.TrickCard.Where(_ => _.Card.SuitId == board.TrumpSuitId).OrderByDescending(_ => _.Card.Value.Sequence).First();
                 var highTrickSeatNumber = gamePlayers.Single(_ => _.PlayerId == highTrickCard.PlayerId).SeatNumber;
-
-                //var highCard = tricks.SelectMany(_ => _.TrickCard).Where(_ => _.Trick.GameId == gameId).Select(_ => _.Card).Where(_ => _.SuitId == board.TrumpSuitId).OrderByDescending(_ => _.Value.Sequence).First();
-                //var highTrick = tricks.Single(_ => _.TrickCard.Any(card => card.Card.SuitId.Equals(board.TrumpSuitId) && card.Card.Value.Id == highCard.ValueId));
-                //var highTrickSeatNumber = (await gamePlayers.SingleAsync(_ => _.PlayerId == highTrick.WinningPlayerId)).SeatNumber;
                 if (team1PlayerSeats.Contains(highTrickSeatNumber))
-                    //team1Points++;
                     pointList.Add(new Point()
                     {
                         Team = 1,
                         PointType = PointTypeEnum.High,
                     });
                 if (team2PlayerSeats.Contains(highTrickSeatNumber))
-                    //team2Points++;
                     pointList.Add(new Point()
                     {
                         Team = 2,
@@ -286,7 +280,6 @@ namespace Shmear.Business.Services
                 {
                     var jokerTrickSeatNumber = gamePlayers.Single(_ => _.PlayerId == jokerTrick.WinningPlayerId).SeatNumber;
                     if (team1PlayerSeats.Contains(jokerTrickSeatNumber))
-                        //team1Points++;
                         pointList.Add(new Point()
                         {
                             Team = 1,
@@ -304,45 +297,25 @@ namespace Shmear.Business.Services
                 var lowPlayerId = tricks.SelectMany(_ => _.TrickCard).Single(_ => _.CardId == lowCard.Id).PlayerId;
                 var lowPlayerSeatNumber = gamePlayers.Single(_ => _.PlayerId == lowPlayerId).SeatNumber;
                 if (team1PlayerSeats.Contains(lowPlayerSeatNumber))
-                    //team1Points++;
                     pointList.Add(new Point()
                     {
                         Team = 1,
                         PointType = PointTypeEnum.Low,
                     });
                 if (team2PlayerSeats.Contains(lowPlayerSeatNumber))
-                    //team2Points++;
                     pointList.Add(new Point()
                     {
                         Team = 2,
                         PointType = PointTypeEnum.Low,
                     });
 
-
                 var winningTrickCards = db.GamePlayer.Where(_ => _.GameId == gameId).Select(_ => new KeyValuePair<int, int>(_.SeatNumber, db.TrickCard.Where(tc => tc.PlayerId == _.PlayerId).Sum(tc => tc.Card.Value.Points)));
                 var team1RoundCardScore = winningTrickCards.Where(_ => team1PlayerSeats.Contains(_.Key)).Sum(_ => _.Value);
                 var team2RoundCardScore = winningTrickCards.Where(_ => team2PlayerSeats.Contains(_.Key)).Sum(_ => _.Value);
 
-                //var team1RoundCardScore = 0;
-                //var team2RoundCardScore = 0;
-                //foreach (var gamePlayer in gamePlayers)
-                //{
-                //    var points = 0;
-                //    var winningTricks = tricks.SelectMany(_ => _.TrickCard).Where(_ => _.Trick.GameId == gameId && _.Trick.WinningPlayerId == gamePlayer.PlayerId).Select(_ => _.Card.Value.Points).ToList();
-                //    if (winningTricks.Any())
-                //        points = winningTricks.Sum();
-                //    if (team1PlayerSeats.Contains(gamePlayer.SeatNumber))
-                //        team1RoundCardScore += points;
-                //    if (team2PlayerSeats.Contains(gamePlayer.SeatNumber))
-                //        team2RoundCardScore += points;
-                //}
-
-
-
                 var wagerSeat = gamePlayers.OrderByDescending(_ => _.Wager).First().SeatNumber;
                 if (team1RoundCardScore > team2RoundCardScore)
                 {
-                    //team1Points++;
                     pointList.Add(new Point()
                     {
                         Team = 1,
@@ -352,7 +325,6 @@ namespace Shmear.Business.Services
                 }
                 else if (team1RoundCardScore < team2RoundCardScore)
                 {
-                    //team2Points++;
                     pointList.Add(new Point()
                     {
                         Team = 2,
@@ -363,26 +335,19 @@ namespace Shmear.Business.Services
 
                 var roundResult = new RoundResult();
 
-                //var bust = 0;
-                //team1Result = team1Points;
                 roundResult.Team1Points = pointList.Where(_ => _.Team == 1);
                 roundResult.Team1RoundChange = roundResult.Team1Points.Count();
                 if ((board.Team1Wager ?? 0) > 0 && board.Team1Wager > roundResult.Team1RoundChange)
                 {
-                    //team1Result = -(int) board.Team1Wager;
                     roundResult.Team1RoundChange = -(int)board.Team1Wager;
-                    //bust = 1;
                     roundResult.Bust = true;
                 }
 
-                //team2Result = team2Points;
                 roundResult.Team2Points = pointList.Where(_ => _.Team == 2);
                 roundResult.Team2RoundChange = roundResult.Team2Points.Count();
                 if ((board.Team2Wager ?? 0) > 0 && board.Team2Wager > roundResult.Team2RoundChange)
                 {
-                    //team2Result = -(int) board.Team2Wager;
                     roundResult.Team2RoundChange = -(int)board.Team2Wager;
-                    //bust = 1;
                     roundResult.Bust = true;
                 }
 
@@ -397,14 +362,12 @@ namespace Shmear.Business.Services
         {
             var jackTrickSeatNumber = gamePlayers.Single(_ => _.PlayerId == jackTrick.WinningPlayerId).SeatNumber;
             if (team1PlayerSeats.Contains(jackTrickSeatNumber))
-                //team1Points++;
                 return new Point()
                 {
                     Team = 1,
                     PointType = PointTypeEnum.Jack,
                 };
             if (team2PlayerSeats.Contains(jackTrickSeatNumber))
-                //team2Points++;
                 return new Point()
                 {
                     Team = 2,
