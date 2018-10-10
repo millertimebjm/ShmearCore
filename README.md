@@ -40,7 +40,7 @@ ShmearCore is a proof-of-concept project for using the latest ASP.NET Core (2.1 
 
 ### Information View
 
-The Information Viewpoint describes the data storage and how the data moves around thoughout the application lifecycle.  The Information View consists of a database model and what data is needed at each important point in the application state.
+The Information Viewpoint describes the data storage and how the data moves around throughout the application lifecycle.  The Information View consists of a database model and what data is needed at each important point in the application state.
 
 http://erdraw.com/graphs/859618422978/edit
 
@@ -127,7 +127,7 @@ Example of C# Entity Framework Core query
 using (var db = new CustomerDataContext()) 
 {
     var customers = db.Customers.ToList();
-    // Data is accessible though the Customers as a List object 
+    // Data is accessible through the Customers Entity as a List object 
     // automatically generated to be a replica of the database table
 }
 ```
