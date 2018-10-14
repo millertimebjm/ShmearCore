@@ -32,7 +32,16 @@ ShmearCore is a proof-of-concept project for using the latest ASP.NET Core (2.1 
     * Low Card of Trump Suit (Player who plays it)
     * Jack of Trump Suit (Player who wins the Trick)
     * Joker (Player who wins the Trick)
-    * "Game" is determined by counting, for each team, the score based on the Value of each Card accumulated in Tricks won for that team.  If there is a tie, no points are awarded.
+    * "Game" is determined by counting, for each team, the score based on the Value of each Card accumulated in Tricks won for that team.  If there is a tie, no point is awarded.
+        * Ace: 4
+        * King: 3
+        * Queen: 2
+        * Jack: 1
+        * Joker: 1
+        * 10: 10
+        * 9: 0
+        * 8: 0
+        * 7: 0
 * Points must equal or exceed the bid from the winning team.  If the team with the winning bid doesn't meet or exceed their bid with points earned, then they "Bust", meaning they do not keep any points they earned and they earn negative points of their bid.  If the team with the winning bid meet or exceed the winning bid with the points earned, they keep all the points they earned.  The team that did not bid keeps the points they earned even though they didn't win the bid.  
 * Winner of each round is determined by the first team to reach 11 points.  "Bidder goes out" means that the team that won the bid for that Hand is allowed to finish the Hand and will win if they reach 11 even though the team that didn't win the bid earns 11 points before the end of the Hand.  
 
@@ -51,8 +60,8 @@ http://erdraw.com/graphs/859618422978/edit
 * Player records details about each player.  The data recorded here can determine how long it's been since the Player has input something into the game.  Also, if the Player reconnects, the ConnectionId can be used to determine which game the Player was previously connected to in order to allow for reconnect.  
 * GamePlayer joins Game and Player.  It also remembers if the player sets themselves to Ready when the Game is about to start, and their wager as the bidding is starting.  
 * HandCard remembers each Card that is in the Player's hand before they play it.  There was nothing needed to be remembered about a Player's Hand that can't be quickly determined by HandCard, so there is no Table referencing Hand.
-* Trick remembers who won the trick.
-* TrickCard remembers who played each Card.  Though who won the Trick could be determined within the application, it requires complicated business logic to determine, so recording the winner in Trick is more valuable.  
+* Trick remembers who won the trick.  Though who won the Trick could be determined within the application, it requires complicated business logic to determine, so recording the winner in Trick is more valuable.
+* TrickCard remembers who played each Card.
 * Card, in combination with Value and Suit, will be the reference for each of the 33 Cards in the Game.
 * Suit remembers the character that can be displayed to represent that Suit as well as the name of that Suit.
 * Value remembers the point value, the name, and the sequence to determine power of that card (within its Suit).
@@ -98,13 +107,13 @@ The Business Layer contains static services.  The reason for static services is 
 
 #### Data Layer
 
-Refer to the Information View.
+Refer to the [Information View](https://github.com/millertimebjm/ShmearCore#information-view).
 
 ## Technology
 
 ### Entity Framework Core
 
-Entity Framework Core is an Object Relational Mapper that can hide and automate the creation of SQL behind the usage of LINQ (Language Integrated Query) language integrated in C#.
+Entity Framework Core is an Object Relational Mapper that can hide and automate the creation of SQL behind the usage of LINQ (Language Integrated Query) integrated in C#.
 
 Example of C# raw sql query (https://msdn.microsoft.com/en-us/library/fksx3b4f.aspx):
 
@@ -136,14 +145,14 @@ Advantages and disadvantages of Entity Framework are listed here (same applies f
 
 https://social.msdn.microsoft.com/Forums/en-US/16f4db07-2b8a-42fe-94a4-924b6916984d/what-is-the-advantage-and-disadvantage-of-entity-framework?forum=adodotnetentityframework
 
-The primary reasons for using Entity Framework:
+The primary reasons for using Entity Framework in ShmearCore:
 
 * Easy to map business objects (single command line statement to (re)create all business objects in the domain model) as well as all relationships between those objects.  
-* LINQ querying allows for rapid prototyping of CRUD operations as well as sophisticated business logic querying for proof-of-concept.
+* LINQ allows for rapid prototyping of CRUD operations as well as sophisticated business logic querying for proof-of-concept.
 
 #### Testing
 
-Entity Framework Core has dramatically eased the burden of trying to keep separate an environment for doing automated testing vs. a SQL Server development environment where I can execute and debug my application.  The benefits of using an "InMemory" connection string from Entity Framework Core include:
+Entity Framework Core has dramatically eased the burden of keeping separate an environment for doing automated testing vs. a SQL Server development environment to execute and debug the application.  The benefits of using an "InMemory" connection string from Entity Framework Core include:
 
 * Automated creation before each test (Fact) of new DbContext which is an empty database that includes all "tables" from the model generated by Entity Framework Core.
 * Automated teardown after each test (Fact) is complete.
