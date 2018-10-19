@@ -125,48 +125,56 @@ namespace Shmear.Business.Services
                 {
                     Name = "Eight",
                     Char = "8",
+                    Points = 0,
                     Sequence = 20
                 },
                 new Value()
                 {
                     Name = "Nine",
                     Char = "9",
+                    Points = 0,
                     Sequence = 30
                 },
                 new Value()
                 {
                     Name = "Ten",
                     Char = "T",
+                    Points = 10,
                     Sequence = 40
                 },
                 new Value()
                 {
                     Name = "Joker",
                     Char = "J",
+                    Points = 1,
                     Sequence = 50
                 },
                 new Value()
                 {
                     Name = "Jack",
                     Char = "J",
+                    Points = 1,
                     Sequence = 60
                 },
                 new Value()
                 {
                     Name = "Queen",
                     Char = "Q",
+                    Points = 2,
                     Sequence = 70
                 },
                 new Value()
                 {
                     Name = "King",
                     Char = "K",
+                    Points = 3,
                     Sequence = 80
                 },
                 new Value()
                 {
                     Name = "Ace",
                     Char = "A",
+                    Points = 4,
                     Sequence = 90
                 },
             };
