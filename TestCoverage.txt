@@ -1,0 +1,29 @@
+> dotnet tool install --global coverlet.console
+
+> coverlet .\Shmear.Test\bin\Debug\netcoreapp2.0\Shmear.Test.dll --target "dotnet" --targetargs "test --no-build"
+
+Test run for C:\BrandonDevelopment\Github\ShmearCore\ShmearCore\Shmear.Test\bin\Debug\netcoreapp2.0\Shmear.Test.dll(.NETCoreApp,Version=v2.0)
+Microsoft (R) Test Execution Command Line Tool Version 15.8.0
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Starting test execution, please wait...
+
+Total tests: 16. Passed: 16. Failed: 0. Skipped: 0.
+Test Run Successful.
+Test execution time: 3.4043 Seconds
+
+
+Calculating coverage result...
+  Generating report 'C:\BrandonDevelopment\Github\ShmearCore\ShmearCore\Shmear.Test\coverage.json'
+
++------------------------+--------+--------+--------+
+| Module                 | Line   | Branch | Method |
++------------------------+--------+--------+--------+
+| Shmear.Business        | 80.2%  | 80.7%  | 85.6%  |
++------------------------+--------+--------+--------+
+| Shmear.EntityFramework | 96.5%  | 95.8%  | 94.3%  |
++------------------------+--------+--------+--------+
+
+Total Line: 84.1%
+Total Branch: 81.5%
+Total Method: 89.9%
