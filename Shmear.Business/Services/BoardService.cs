@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Shmear.Business.Services
 {
-    public class BoardService
+    public static class BoardService
     {
         public static int[] GetTeam1PlayerSeats()
         {
@@ -40,7 +40,7 @@ namespace Shmear.Business.Services
 
             using (var db = CardContextFactory.Create(options))
             {
-                var board = await BoardService.GetBoardByGameId(options, gameId);
+                var board = await GetBoardByGameId(options, gameId);
 
                 var gamePlayers = await db.GamePlayer.Where(_ => _.GameId == gameId).OrderBy(_ => _.SeatNumber).ToListAsync();
 
@@ -55,7 +55,7 @@ namespace Shmear.Business.Services
                     var nextDealerIndex = (playerIndex + 1) % 4;
                     board.DealerPlayerId = gamePlayers[nextDealerIndex].PlayerId;
                 }
-                board = await SaveBoard(options, board);
+                await SaveBoard(options, board);
             }
         }
 
@@ -76,9 +76,9 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                var board = await BoardService.GetBoardByGameId(options, gameId);
+                var board = await GetBoardByGameId(options, gameId);
                 board.TrumpSuitId = null;
-                await BoardService.SaveBoard(options, board);
+                await SaveBoard(options, board);
             }
         }
 
@@ -97,7 +97,7 @@ namespace Shmear.Business.Services
                 var board = await db.Board.SingleOrDefaultAsync(_ => _.GameId == gameId);
                 if (board == null)
                 {
-                    board = await SaveBoard(options, new Board()
+                    await SaveBoard(options, new Board()
                     {
                         GameId = gameId,
                     });
@@ -109,7 +109,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                var result = new Board();
+                Board result;
                 if (board.Id == 0)
                 {
                     await db.Board.AddAsync(board);
@@ -163,7 +163,7 @@ namespace Shmear.Business.Services
             while (n > 1)
             {
                 byte[] box = new byte[1];
-                do provider.GetBytes(box); while (!(box[0] < n * (Byte.MaxValue / n)));
+                do provider.GetBytes(box); while (box[0] >= n * (byte.MaxValue / n));
                 var k = (box[0] % n);
                 n--;
                 var value = cards[k];
@@ -186,8 +186,6 @@ namespace Shmear.Business.Services
 
         public static async Task<GamePlayer> GetNextCardPlayer(DbContextOptions<CardContext> options, int gameId, int trickId)
         {
-            var board = await BoardService.GetBoardByGameId(options, gameId);
-            var firstPlayerId = board.DealerPlayerId;
             var gamePlayers = (await GameService.GetGamePlayers(options, gameId)).OrderBy(_ => _.SeatNumber).ToList();
             var completedTricks = (await TrickService.GetTricks(options, gameId)).Where(_ => _.CompletedDate != null);
             int trickStartingPlayer;
@@ -231,7 +229,7 @@ namespace Shmear.Business.Services
                 else
                     board.Team2Wager = maxWagerPlayer.Wager;
 
-                await BoardService.SaveBoard(options, board);
+                await SaveBoard(options, board);
             }
         }
 
@@ -271,7 +269,7 @@ namespace Shmear.Business.Services
                 var jackTrick = tricks.SingleOrDefault(_ => _.TrickCard.Any(card => card.Card.SuitId.Equals(board.TrumpSuitId) && card.Card.Value.Name.Equals(CardService.ValueEnum.Jack.ToString())));
                 if (jackTrick != null)
                 {
-                    var point = GetJackPoint(options, gamePlayers, jackTrick, team1PlayerSeats, team2PlayerSeats);
+                    var point = GetJackPoint(gamePlayers, jackTrick, team1PlayerSeats, team2PlayerSeats);
                     pointList.Add(point);
                 }
 
@@ -313,7 +311,6 @@ namespace Shmear.Business.Services
                 var team1RoundCardScore = winningTrickCards.Where(_ => team1PlayerSeats.Contains(_.Key)).Sum(_ => _.Value);
                 var team2RoundCardScore = winningTrickCards.Where(_ => team2PlayerSeats.Contains(_.Key)).Sum(_ => _.Value);
 
-                var wagerSeat = gamePlayers.OrderByDescending(_ => _.Wager).First().SeatNumber;
                 if (team1RoundCardScore > team2RoundCardScore)
                 {
                     pointList.Add(new Point()
@@ -351,14 +348,19 @@ namespace Shmear.Business.Services
                     roundResult.Bust = true;
                 }
 
-                roundResult.TeamWager = board.Team1Wager > 0 ? 1 : board.Team2Wager > 0 ? 2 : 0;
+                roundResult.TeamWager = 0;
+                if (board.Team1Wager > 0)
+                    roundResult.TeamWager = 1;
+                if (board.Team2Wager > 0)
+                    roundResult.TeamWager = 2;
+                
                 roundResult.TeamWagerValue = Math.Max(board.Team1Wager ?? 0, board.Team2Wager ?? 0);
 
                 return roundResult;
             }
         }
 
-        private static Point GetJackPoint(DbContextOptions<CardContext> options, IEnumerable<GamePlayer> gamePlayers, Trick jackTrick, int[] team1PlayerSeats, int[] team2PlayerSeats)
+        private static Point GetJackPoint(IEnumerable<GamePlayer> gamePlayers, Trick jackTrick, int[] team1PlayerSeats, int[] team2PlayerSeats)
         {
             var jackTrickSeatNumber = gamePlayers.Single(_ => _.PlayerId == jackTrick.WinningPlayerId).SeatNumber;
             if (team1PlayerSeats.Contains(jackTrickSeatNumber))
@@ -382,7 +384,6 @@ namespace Shmear.Business.Services
             {
                 var trumpSuitId = (int)db.Board.Single(_ => _.GameId == gameId).TrumpSuitId;
                 trickCards = trickCards.OrderBy(_ => _.Sequence);
-                var suitLed = trickCards.First();
                 var suitLedCard = CardService.GetCard(options, trickCards.First().CardId);
                 var highestCard = false;
                 var jokerId = db.Card.Single(_ => _.ValueId == CardService.GetCard(options, CardService.SuitEnum.None, CardService.ValueEnum.Joker).ValueId).Id;
@@ -442,7 +443,7 @@ namespace Shmear.Business.Services
                 return 1;
             else if (card1Value < card2Value)
                 return -1;
-            else //if (card1Value == card2Value)
+            else 
                 return 0;
         }
     }

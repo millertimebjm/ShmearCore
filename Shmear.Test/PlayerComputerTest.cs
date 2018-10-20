@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Shmear.Test
@@ -16,7 +17,7 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void PlayerComputerTestWager()
+        public async Task PlayerComputerTestWager()
         {
             var seedDatabase = new SeedDatabase();
             seedDatabase.RunWithOptions(options);
@@ -42,7 +43,7 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void PlayerComputerTestPlayCard()
+        public async Task PlayerComputerTestPlayCard()
         {
             var seedDatabase = new SeedDatabase();
             seedDatabase.RunWithOptions(options);
@@ -65,12 +66,6 @@ namespace Shmear.Test
 
             var trick = await TrickService.CreateTrick(options, game.Id);
             await BoardService.GetNextCardPlayer(options, game.Id, trick.Id);
-
-            //await BoardService.SetWager(options, game.Id, players.First().Id, 5);
-
-            //await PlayerComputerService.PlayCard(options, game.Id, players.First().Id);
-
-
         }
     }
 }

@@ -9,10 +9,7 @@ using System.Threading.Tasks;
 namespace Shmear.Business.Services
 {
     public class PlayerComputerService
-    {
-        public double Aggressiveness = 50.0d;
-        public int PointsToWinRound = 11;
-        
+    {     
         public static async Task<KeyValuePair<CardService.SuitEnum, double>> Wager(DbContextOptions<CardContext> options, int gameId, int playerId)
         {
             var game = await GameService.GetGame(options, gameId);
@@ -63,7 +60,7 @@ namespace Shmear.Business.Services
 
 
             // If first trick, determine best card to play as first card
-            if (tricks.Count() == 1 && tricks.Single().TrickCard.Count() == 0)
+            if (tricks.Count() == 1 && tricks.Single().TrickCard.Count == 0)
             {
                 var suit = (await CalculateBestHandValuePerSuit(options, gameId, playerId)).Key;
                 var bestSuitCard = GetBestFirstPlayCard(handCards.Where(_ => _.Card.Suit.Name == suit.ToString()).Select(_ => _.Card));
@@ -77,7 +74,7 @@ namespace Shmear.Business.Services
                 if (await GameService.ValidCardPlay(options, gameId, board.Id, playerId, handCard.CardId))
                     validCards.Add(handCard.Card);
             }
-            if (validCards.Count() == 1)
+            if (validCards.Count == 1)
                 return validCards.Single();
 
             // if your lead

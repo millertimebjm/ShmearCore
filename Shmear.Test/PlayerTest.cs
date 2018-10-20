@@ -3,6 +3,7 @@ using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Shmear.Test
@@ -15,7 +16,7 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void PlayerTestSave()
+        public async Task PlayerTestSave()
         {
             var player = GenerateNewPlayer("PlayerTestSave");
             player = await PlayerService.SavePlayer(options, player);
@@ -23,7 +24,7 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void PlayerTestGet()
+        public async Task PlayerTestGet()
         {
             var player = GenerateNewPlayer("PlayerTestGet");
             player = await PlayerService.SavePlayer(options, player);
@@ -42,7 +43,7 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void PlayerTestDelete()
+        public async Task PlayerTestDelete()
         {
             var player = GenerateNewPlayer("PlayerTestDelete");
             player = await PlayerService.SavePlayer(options, player);

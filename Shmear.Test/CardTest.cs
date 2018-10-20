@@ -21,11 +21,5 @@ namespace Shmear.Test
             var seedDatabase = new SeedDatabase();
             seedDatabase.RunWithOptions(options);
         }
-
-        //[Fact]
-        //public void JokerTest()
-        //{
-        //    //var cardService = new CardService(_contextOptions);
-        //}
     }
 }

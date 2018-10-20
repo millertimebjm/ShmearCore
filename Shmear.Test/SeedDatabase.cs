@@ -18,12 +18,6 @@ namespace Shmear.Test
             _contextOptions = contextOptions.Options;
         }
 
-        //public SeedDatabase(DbContextOptions<CardContext> contextOptions)
-        //{
-        //    _contextOptions = contextOptions;
-        //}
-
-        
         public void RunWithOptions(DbContextOptions<CardContext> options)
         {
             _contextOptions = options;

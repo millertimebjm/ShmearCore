@@ -18,18 +18,18 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void GameTestNew()
+        public async Task GameTestNew()
         {
             var game = await GameService.CreateGame(options);
             Assert.True(game.Id > 0);
-            Assert.True(game.CreatedDate != null && game.CreatedDate > DateTime.Now.AddMinutes(-1) && game.CreatedDate < DateTime.Now);
+            Assert.True(game.CreatedDate > DateTime.Now.AddMinutes(-1) && game.CreatedDate < DateTime.Now);
             Assert.True(game.StartedDate == null);
             Assert.True(game.Team1Points == 0);
             Assert.True(game.Team2Points == 0);
         }
 
         [Fact]
-        public async void GameTestOpen()
+        public async Task GameTestOpen()
         {
             var game = await GameService.CreateGame(options);
             var openGame = await GameService.GetOpenGame(options);
@@ -37,7 +37,7 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void GameTestGet()
+        public async Task GameTestGet()
         {
             var game = await GameService.CreateGame(options);
             var newGame = await GameService.GetGame(options, game.Id);
@@ -45,7 +45,7 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void GameTestAddPlayer()
+        public async Task GameTestAddPlayer()
         {
             var game = await GameService.CreateGame(options);
             var player = GenerateNewPlayer($"GameTestAddPlayer");
@@ -57,18 +57,18 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void GameTestGetGamePlayer()
+        public async Task GameTestGetGamePlayer()
         {
             var game = await GameService.CreateGame(options);
             var player = GenerateNewPlayer($"GameTestGetGamePlayer");
             player = await PlayerService.SavePlayer(options, player);
-            var gameAddPlayerChange = await GameService.AddPlayer(options, game.Id, player.Id, 0);
+            await GameService.AddPlayer(options, game.Id, player.Id, 0);
             var newPlayer = await GameService.GetGamePlayer(options, game.Id, player.Id);
             Assert.True(newPlayer.PlayerId == player.Id);
         }
 
         [Fact]
-        public async void GameTestGetGamePlayers()
+        public async Task GameTestGetGamePlayers()
         {
             var game = await GameService.CreateGame(options);
             var players = new List<Player>();
@@ -76,7 +76,7 @@ namespace Shmear.Test
             {
                 var player = GenerateNewPlayer($"GameTestGetGamePlayers{i}");
                 player = await PlayerService.SavePlayer(options, player);
-                var gameAddPlayerChange = await GameService.AddPlayer(options, game.Id, player.Id, i);
+                await GameService.AddPlayer(options, game.Id, player.Id, i);
                 players.Add(player);
             }
 
@@ -89,7 +89,7 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void GameTestGetPlayersByGame()
+        public async Task GameTestGetPlayersByGame()
         {
             var game = await GameService.CreateGame(options);
             var players = new List<Player>();
@@ -97,7 +97,7 @@ namespace Shmear.Test
             {
                 var player = GenerateNewPlayer($"GameTestGetGamePlayers{i}");
                 player = await PlayerService.SavePlayer(options, player);
-                var gameAddPlayerChange = await GameService.AddPlayer(options, game.Id, player.Id, i);
+                await GameService.AddPlayer(options, game.Id, player.Id, i);
                 players.Add(player);
             }
 
@@ -110,7 +110,7 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public async void GameTestEndRound()
+        public async Task GameTestEndRound()
         {
             var gameId = await PlayGameUntilEndRound();
 
@@ -176,16 +176,13 @@ namespace Shmear.Test
         }
 
         [Fact]
-        public void GameTestEfCoreError()
+        public async Task GameTestEfCoreError()
         {
             using (var db = CardContextFactory.Create(options))
             {
-                //var seedDatabase = new SeedDatabase();
-                //seedDatabase.RunWithOptions(options);
-
                 var card = new Card();
                 db.Card.Add(card);
-                db.SaveChanges();
+                await db.SaveChangesAsync();
                 var game = new Game();
                 db.Game.Add(game);
                 var player = new Player();
@@ -207,51 +204,9 @@ namespace Shmear.Test
                     CardId = db.Card.First().Id,
                 };
                 db.TrickCard.Add(trickCard);
-                db.SaveChanges();
+                await db.SaveChangesAsync();
                 Assert.Throws<KeyNotFoundException>(() => db.Trick.Include(_ => _.TrickCard).First());
-                var trick2 = db.Trick.Include(tc => tc.TrickCard).First();
             }
         }
-
-        //[Fact]
-        //public async void GameTestPoints()
-        //{
-        //    var gameId = await PlayGameUntilEndRound();
-
-        //    var game = await GameService.GetGame(options, gameId);
-        //    var roundResult = await BoardService.EndRound(options, game.Id);
-        //    using (var db = CardContextFactory.Create(options))
-        //    {
-        //        var tricks = db.Trick
-        //            .Include(t => t.TrickCard).ThenInclude(tc => tc.Card).ThenInclude(c => c.Suit)
-        //            .Include(t => t.TrickCard).ThenInclude(tc => tc.Card).ThenInclude(c => c.Value)
-        //            .Include(t => t.Game.Board)
-        //            .Include(t => t.WinningPlayer).ThenInclude(p => p.GamePlayer)
-        //            .Include(t => t.TrickCard).ThenInclude(tc => tc.Trick)
-        //            .Where(t => t.GameId == game.Id);
-        //        var team1PlayerSeats = BoardService.GetTeam1PlayerSeats();
-
-
-        //        var trickCards = tricks.SelectMany(t => t.TrickCard);
-        //        var trumpCards = trickCards.Where(tc => tc.Card.SuitId == tc.Trick.Game.Board.Single().TrumpSuitId);
-        //        var orderedTrumpCards = trumpCards.OrderByDescending(tc => tc.Card.Value.Sequence);
-        //        var seatNumber = orderedTrumpCards.First().Trick.WinningPlayer.GamePlayer.Single(gp => gp.GameId == gameId).SeatNumber;
-
-
-        //        var highCardSeatNumber = tricks.Where(_ => _.TrickCard.Any(.Card.SuitId == _.Game.Board.Single().TrumpSuitId)).Where(_ => _.Card.SuitId == _.Trick.Game.Board.Single().TrumpSuitId).OrderByDescending(tc => tc.Card.Value.Sequence).First().Trick.WinningPlayer.GamePlayer.Single(_ => _.GameId == gameId).SeatNumber;
-        //        if (team1PlayerSeats.Contains(highCardSeatNumber))
-        //            Assert.Contains(roundResult.Team1Points, _ => _.PointType == Business.Models.PointTypeEnum.High);
-        //        else
-        //            Assert.Contains(roundResult.Team2Points, _ => _.PointType == Business.Models.PointTypeEnum.High);
-
-        //        //var highCardTeam = tricks.Single(_ => _.Id == _.TrickCard.Where(tc => tc.Card.SuitId == _.Game.Board.Single().TrumpSuitId).OrderByDescending(tc => tc.Card.Value.Sequence).First().TrickId).WinningPlayer.GamePlayer.Single(_ => _.GameId == gameId).SeatNumber;
-        //        //var jackCardTeam = tricks.Single(_ => _.Id == _.TrickCard.Single(tc => tc.Card.SuitId == _.Game.Board.Single().TrumpSuitId && tc.Card.Value.Name == CardService.ValueEnum.Jack.ToString()).TrickId).WinningPlayer.GamePlayer.Single(_ => _.GameId == gameId).SeatNumber;
-        //        //if (tricks.Any(_ => _.TrickCard.Any(tc => tc.Card.Value.Name == CardService.ValueEnum.Joker.ToString())))
-        //        //{
-        //        //    var jokerCardTeam = tricks.Single(_ => _.Id == _.TrickCard.Single(tc => tc.Card.SuitId == _.Game.Board.Single().TrumpSuitId && tc.Card.Value.Name == CardService.ValueEnum.Joker.ToString()).TrickId).WinningPlayer.GamePlayer.Single(_ => _.GameId == gameId).SeatNumber;
-        //        //}
-        //        //var lowCardTeam = tricks.Single();
-        //    }
-        //}
     }
 }

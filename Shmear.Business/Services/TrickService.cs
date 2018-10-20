@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Shmear.Business.Services
 {
-    public class TrickService
+    public static class TrickService
     {
         public static async Task<IEnumerable<Trick>> GetTricks(DbContextOptions<CardContext> options, int gameId)
         {

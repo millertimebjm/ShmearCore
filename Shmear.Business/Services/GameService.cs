@@ -1,22 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
-//using Shmear.EntityFramework.EntityFrameworkCore.SqlServer;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Shmear.EntityFramework.EntityFrameworkCore;
 
 namespace Shmear.Business.Services
 {
-    public class GameService
+    public static class GameService
     {
         public async static Task<Game> GetOpenGame(DbContextOptions<CardContext> options)
         {
             using (var db = CardContextFactory.Create(options))
             {
-                var openGames = await db.Game.Where(_ => _.CreatedDate != null && (_.StartedDate == null && _.GamePlayer.Count() < 4)).ToListAsync();
+                var openGames = await db.Game.Where(_ => _.StartedDate == null && _.GamePlayer.Count < 4).ToListAsync();
                 if (openGames.Any())
                 {
                     return openGames.First();
@@ -28,7 +25,7 @@ namespace Shmear.Business.Services
 
         public async static Task<Game> CreateGame(DbContextOptions<CardContext> options)
         {
-            var game = new EntityFramework.EntityFrameworkCore.SqlServer.Models.Game
+            var game = new Game
             {
                 Id = 0,
                 CreatedDate = DateTime.Now,
@@ -96,15 +93,6 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                //var game = await db.Game.Include(_ => _.GamePlayer).SingleAsync(_ => _.Id == gameId);
-                //var player = await db.Player.SingleAsync(_ => _.Id == playerId);
-
-                //if (game.GamePlayer.Any(_ => _.PlayerId == playerId))
-                //{
-                //    db.GamePlayer.Remove(await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId));
-                //    await db.SaveChangesAsync();
-                //}
-
                 var gamePlayer = await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
                 db.GamePlayer.Remove(gamePlayer);
                 await db.SaveChangesAsync();
@@ -116,7 +104,6 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                //var game = await db.Game.SingleAsync(_ => _.Id == gameId);
                 return await db.GamePlayer.Include(_ => _.Player).SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
             }
         }
@@ -125,7 +112,6 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                var game = await db.Game.SingleAsync(_ => _.Id == gameId);
                 return await db.GamePlayer.SingleAsync(_ => _.GameId == gameId && _.Player.ConnectionId == connectionId);
             }
         }
@@ -134,7 +120,7 @@ namespace Shmear.Business.Services
         {
             using (var db = CardContextFactory.Create(options))
             {
-                var gamePlayerReturn = new GamePlayer();
+                GamePlayer gamePlayerReturn;
                 if (gamePlayer.Id == 0)
                 {
                     await db.GamePlayer.AddAsync(gamePlayer);
@@ -206,7 +192,7 @@ namespace Shmear.Business.Services
                 else
                 {
                     var trickCards = await TrickService.GetTrickCards(options, trick.Id);
-                    if (trick != null && trickCards.Any())
+                    if (trickCards.Any())
                     {
                         var cardLed = (await CardService.GetCardAsync(options, trickCards.First().CardId));
                         var suitLedId = cardLed.SuitId;
@@ -233,8 +219,8 @@ namespace Shmear.Business.Services
             using (var db = CardContextFactory.Create(options))
             {
                 var game = await db.Game.SingleAsync(_ => _.Id == gameId);
-                game.Team1Points = game.Team1Points;
-                game.Team2Points = game.Team2Points;
+                game.Team1Points = team1Points;
+                game.Team2Points = team2Points;
                 await db.SaveChangesAsync();
                 return game;
             }

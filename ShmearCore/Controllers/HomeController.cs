@@ -11,7 +11,7 @@ namespace Shmear.Web.Controllers
 {
     public class HomeController : Controller
     {
-        private DbContextOptions<CardContext> _contextOptions;
+        private readonly DbContextOptions<CardContext> _contextOptions;
 
         public HomeController() : base()
         {
@@ -22,15 +22,7 @@ namespace Shmear.Web.Controllers
 
         public IActionResult Index()
         {
-            try
-            {
-                // Initialize Database - Don't care about result
-                Task.Run(() => GameService.GetOpenGame(_contextOptions));
-            }
-            catch(Exception ex)
-            {
-
-            }
+            Task.Run(() => GameService.GetOpenGame(_contextOptions));
             return View();
         }
 

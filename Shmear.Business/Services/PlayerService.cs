@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Shmear.Business.Services
 {
-    public class PlayerService
+    public static class PlayerService
     {
         public async static Task<Player> GetPlayer(DbContextOptions<CardContext> options, int id)
         {
@@ -40,7 +40,7 @@ namespace Shmear.Business.Services
                 }
                 else
                 {
-                    var playerTemp = new Player();
+                    Player playerTemp;
                     playerTemp = await db.Player.SingleAsync(_ => _.Id == player.Id);
                     playerTemp.ConnectionId = player.ConnectionId;
                     playerTemp.Name = player.Name;
@@ -49,8 +49,6 @@ namespace Shmear.Business.Services
                 }
 
                 await db.SaveChangesAsync();
-                //int recordsChanged = db.SaveChanges();
-
                 return returnPlayer;
             }
         }

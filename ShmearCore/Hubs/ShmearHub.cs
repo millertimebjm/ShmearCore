@@ -7,17 +7,13 @@ using System.Linq;
 using System.Collections.Generic;
 using Shmear.Business.Models;
 using Microsoft.EntityFrameworkCore;
-using Shmear.EntityFramework.EntityFrameworkCore;
-//using Shmear.Business.Game;
+using System.Text;
 
 namespace Shmear.Web.Hubs
 {
     public class ShmearHub : Hub
     {
-        const string s = "s";
-        //private string[] _seats;
-        protected static object _seatsLock = new object();
-        private DbContextOptions<CardContext> options;
+        private readonly DbContextOptions<CardContext> options;
 
         public ShmearHub()
             : base()
@@ -75,12 +71,11 @@ namespace Shmear.Web.Hubs
             var openGame = await GameService.GetOpenGame(options);
             var seats = await GetSeatsArray(openGame.Id);
             await Clients.Client(player.ConnectionId).SendAsync("ReceiveSeatStatuses", openGame.Id, seats);
-            return;
         }
 
         private async Task<string[]> GetSeatsArray(int gameId = 0)
         {
-            var game = new Game();
+            Game game;
             if (gameId == 0)
             {
                 game = await GameService.GetOpenGame(options);
@@ -123,7 +118,7 @@ namespace Shmear.Web.Hubs
                     await GameService.AddPlayer(options, gameId, player.Id, seatNumber);
             }
             else
-                throw new Exception("Invalid seat number.");
+                throw new ArgumentOutOfRangeException("seatNumber", "Invalid seat number.");
 
             await SendSeatStatus(gameId);
             return true;
@@ -131,7 +126,7 @@ namespace Shmear.Web.Hubs
 
         public async Task SendSeatStatus(int gameId = 0)
         {
-            var game = new Game();
+            Game game;
             if (gameId == 0)
             {
                 game = await GameService.GetOpenGame(options);
@@ -147,9 +142,7 @@ namespace Shmear.Web.Hubs
 
         public async Task LeaveSeat(int gameId)
         {
-            var game = await GameService.GetGame(options, gameId);
             var player = await PlayerService.GetPlayer(options, Context.ConnectionId);
-            //var gamePlayer = GameService.GetGamePlayers(gameId).Single(_ => _.PlayerId == player.Id);
             await GameService.RemovePlayer(options, gameId, player.Id);
 
             await SendSeatStatus(gameId);
@@ -157,7 +150,6 @@ namespace Shmear.Web.Hubs
 
         public async Task TogglePlayerReadyStatus(int gameId)
         {
-            var game = await GameService.GetGame(options, gameId);
             var player = await PlayerService.GetPlayer(options, Context.ConnectionId);
             var gamePlayer = await GameService.GetGamePlayer(options, gameId, player.Id);
             gamePlayer.Ready = !gamePlayer.Ready;
@@ -166,22 +158,17 @@ namespace Shmear.Web.Hubs
             await Clients.Client(player.ConnectionId).SendAsync("UpdatePlayerReadyStatus", gamePlayer.Ready);
 
             await CheckStartGame(gameId);
-
-            //UpdatePlayerReadyStatus(gameId);
         }
 
         private async Task CheckStartGame(int gameId)
         {
             var gamePlayers = await GameService.GetGamePlayers(options, gameId);
-            if (gamePlayers.Count(_ => _.Ready) == 4)
+            if (gamePlayers.Count(_ => _.Ready) == 4 && await GameService.StartGame(options, gameId))
             {
-                if (await GameService.StartGame(options, gameId))
-                {
-                    await BoardService.StartRound(options, gameId);
-                    await BoardService.DealCards(options, gameId);
+                await BoardService.StartRound(options, gameId);
+                await BoardService.DealCards(options, gameId);
 
-                    await SendCards(gameId);
-                }
+                await SendCards(gameId);
             }
         }
 
@@ -297,12 +284,14 @@ namespace Shmear.Web.Hubs
             trick = await TrickService.EndTrick(options, trick.Id);
             var winningPlayerId = trick.WinningPlayerId;
             var winningPlayer = await PlayerService.GetPlayer(options, (int)winningPlayerId);
-            var trickString = string.Empty;
+            var trickString = new StringBuilder();
             var trickCards = await TrickService.GetTrickCards(options, trick.Id);
             foreach (var trickCard in trickCards)
             {
                 var cardInTrick = await CardService.GetCardAsync(options, trickCard.CardId);
-                trickString += cardInTrick.Suit.Char + cardInTrick.Value.Char + " ";
+                trickString.Append(cardInTrick.Suit.Char);
+                trickString.Append(cardInTrick.Value.Char);
+                trickString.Append(" ");
             }
             await SendMessage(gameId, "<p>" + winningPlayer.Name + " won the trick. " + trickString + "</p>");
         }
@@ -336,13 +325,7 @@ namespace Shmear.Web.Hubs
             return "";
         }
 
-        private async Task SendMessage(int gameId, int playerId, string message)
-        {
-            var gamePlayer = await GameService.GetGamePlayer(options, gameId, playerId);
-            await SendMessage(gameId, gamePlayer.Player.ConnectionId, message);
-        }
-
-        private async Task SendMessage(int gameId, string connectionId, string message)
+        private async Task SendMessage(string connectionId, string message)
         {
             await Clients.Client(connectionId).SendAsync("SendMessage", message);
         }
@@ -351,9 +334,8 @@ namespace Shmear.Web.Hubs
         {
             var gamePlayers = await GameService.GetGamePlayers(options, gameId);
             foreach (var gamePlayer in gamePlayers)
-            {
-                await SendMessage(gameId, gamePlayer.Player.ConnectionId, message);
-            }
+                await SendMessage(gamePlayer.Player.ConnectionId, message);
+            
         }
 
         public async Task SendChat(int gameId, string message)

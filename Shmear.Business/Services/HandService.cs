@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Shmear.Business.Services
 {
-    public class HandService
+    public static class HandService
     {
         public static async Task<bool> AddCard(DbContextOptions<CardContext> options, int gameId, int playerId, int cardId)
         {
@@ -29,17 +29,5 @@ namespace Shmear.Business.Services
                 return await db.HandCard.Include(hc => hc.Card).ThenInclude(c => c.Suit).Include(hc => hc.Card).ThenInclude(c => c.Value).Where(_ => _.GameId == gameId && _.PlayerId == playerId).ToListAsync();
             }
         }
-
-        //public static bool RemoveCard(int gameId, int playerId, int cardId)
-        //{
-        //    using (var db = new ShmearDataContext())
-        //    {
-        //        var handCard = db.HandCards.Single(_ => _.PlayerId == playerId && _.CardId == cardId);
-        //        db.HandCards.DeleteOnSubmit(handCard);
-        //        db.SubmitChanges();
-        //    }
-
-        //    return true;
-        //}
     }
 }
