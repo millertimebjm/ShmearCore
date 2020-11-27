@@ -7,6 +7,10 @@ namespace Shmear.Web.Controllers
     {
         public IActionResult Index(string name)
         {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return RedirectToAction("Index", "Home");
+            }
             var user = new ShmearModel()
             {
                 Name = name

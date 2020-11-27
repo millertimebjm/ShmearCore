@@ -26,7 +26,7 @@ namespace Shmear.Web.Hubs
         public async override Task OnConnectedAsync()
         {
             await base.OnConnectedAsync();
-
+            
             string userName = Context.User.Identity.Name ?? "";
             string connectionId = Context.ConnectionId;
 
@@ -262,6 +262,7 @@ namespace Shmear.Web.Hubs
                     await SendMessage(gameId, "<p>" + player.Name + " played " + card.Suit.Char + card.Value.Char + "</p>");
 
                     // Check to see if the Trick is over
+                    trickCards = await TrickService.GetTrickCards(options, trick.Id);
                     if (trickCards.Count() == 4)
                     {
                         await EndTrick(gameId, trick);
