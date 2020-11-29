@@ -37,7 +37,7 @@ namespace Shmear.Web
                 app.UseExceptionHandler("/Home/Error");
             }
 
-            app.UseSession();
+            //app.UseSession();
             app.UseStaticFiles();
 
             app.UseRouting();
