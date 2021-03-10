@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Shmear.Business.Services;
 using Shmear.Web.Models;
 using Microsoft.EntityFrameworkCore;
-using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
+using Shmear.EntityFramework.EntityFrameworkCore.Models;
 using System;
+using Shmear.EntityFramework.EntityFrameworkCore;
 
 namespace Shmear.Web.Controllers
 {
@@ -16,7 +17,8 @@ namespace Shmear.Web.Controllers
         public HomeController() : base()
         {
             var optionsBuilder = new DbContextOptionsBuilder<CardContext>();
-            optionsBuilder.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
+            //optionsBuilder.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
+            optionsBuilder.UseNpgsql("Host=localhost;Database=Card.Dev;Username=postgres;Password=M8WQn8*Nz%gQEc");
             _contextOptions = optionsBuilder.Options;
         }
 

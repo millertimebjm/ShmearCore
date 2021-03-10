@@ -1,5 +1,5 @@
 ﻿using Shmear.Business.Services;
-using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
+using Shmear.EntityFramework.EntityFrameworkCore.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

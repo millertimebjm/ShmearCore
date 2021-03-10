@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
+using Shmear.EntityFramework.EntityFrameworkCore.Models;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Shmear.EntityFramework.EntityFrameworkCore;
 
 namespace Shmear.Business.Services
 {
@@ -71,7 +72,7 @@ namespace Shmear.Business.Services
                         GameId = gameId,
                         PlayerId = playerId,
                         SeatNumber = seatNumber,
-                        Ready = false
+                        Ready = false,
                     };
 
                     if (game.GamePlayer.Any(_ => _.PlayerId == playerId))

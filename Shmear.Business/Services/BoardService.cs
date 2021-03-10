@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Shmear.Business.Models;
 using Shmear.EntityFramework.EntityFrameworkCore;
-using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
+using Shmear.EntityFramework.EntityFrameworkCore.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -100,6 +100,7 @@ namespace Shmear.Business.Services
                     await SaveBoard(options, new Board()
                     {
                         GameId = gameId,
+                        DateTime = DateTime.Now,
                     });
                 }
             }

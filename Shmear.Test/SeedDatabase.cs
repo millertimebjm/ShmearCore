@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Shmear.Business.Services;
 using Shmear.EntityFramework.EntityFrameworkCore;
-using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
+using Shmear.EntityFramework.EntityFrameworkCore.Models;
 using Xunit;
 
 namespace Shmear.Test
@@ -14,7 +14,8 @@ namespace Shmear.Test
         public SeedDatabase()
         {
             var contextOptions = new DbContextOptionsBuilder<CardContext>();
-            contextOptions.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
+            //contextOptions.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
+            contextOptions.UseNpgsql("Host=localhost;Database=Card.Dev;Username=postgres;Password=M8WQn8*Nz%gQEc");
             _contextOptions = contextOptions.Options;
         }
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Shmear.Business.Services;
-using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
+using Shmear.EntityFramework.EntityFrameworkCore;
+using Shmear.EntityFramework.EntityFrameworkCore.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Shmear.Business.Services;
-using Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models;
+using Shmear.EntityFramework.EntityFrameworkCore.Models;
 using System;
 using System.Threading.Tasks;
 using System.Linq;
@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Shmear.Business.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
+using Shmear.EntityFramework.EntityFrameworkCore;
 
 namespace Shmear.Web.Hubs
 {
@@ -19,7 +20,8 @@ namespace Shmear.Web.Hubs
             : base()
         {
             var optionsBuilder = new DbContextOptionsBuilder<CardContext>();
-            optionsBuilder.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
+            //optionsBuilder.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
+            optionsBuilder.UseNpgsql("Host=localhost;Database=Card.Dev;Username=postgres;Password=M8WQn8*Nz%gQEc");
             options = optionsBuilder.Options;
         }
 

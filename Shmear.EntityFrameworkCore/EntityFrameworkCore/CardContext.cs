@@ -1,8 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Shmear.EntityFramework.EntityFrameworkCore.Models;
 
-namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
+namespace Shmear.EntityFramework.EntityFrameworkCore
 {
     public partial class CardContext : DbContext
     {
@@ -32,7 +33,8 @@ namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
+                //optionsBuilder.UseSqlServer(@"Server=localhost;Database=Card.Dev;Trusted_Connection=True;");
+                optionsBuilder.UseNpgsql("Host=localhost;Database=Card.Dev;Username=postgres;Password=M8WQn8*Nz%gQEc");
             }
         }
 
@@ -79,7 +81,6 @@ namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
             modelBuilder.Entity<Game>(entity =>
             {
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
-
                 entity.Property(e => e.StartedDate).HasColumnType("datetime");
             });
 

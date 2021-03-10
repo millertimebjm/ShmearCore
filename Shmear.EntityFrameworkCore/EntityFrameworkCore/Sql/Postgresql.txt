@@ -1,0 +1,196 @@
+﻿-- Table: public.Board
+
+-- DROP TABLE public."Board";
+
+CREATE TABLE public."Board"
+(
+    "Id" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "DealerPlayerId" integer,
+    "TrumpSuitId" integer,
+    "GameId" integer NOT NULL,
+    "Team1Wager" integer,
+    "Team2Wager" integer,
+    "DateTime" timestamp without time zone NOT NULL,
+    CONSTRAINT "Board_pkey" PRIMARY KEY ("Id")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public."Board"
+    OWNER to postgres;
+
+
+-- Table: public.Card
+
+-- DROP TABLE public."Card";
+
+CREATE TABLE public."Card"
+(
+    "Id" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "SuitId" integer NOT NULL,
+    "ValueId" integer NOT NULL,
+    CONSTRAINT "Card_pkey" PRIMARY KEY ("Id")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public."Card"
+    OWNER to postgres;
+
+
+-- Table: public.Game
+
+-- DROP TABLE public."Game";
+
+CREATE TABLE public."Game"
+(
+    "Id" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "Team1Points" integer NOT NULL,
+    "Team2Points" integer NOT NULL,
+    "CreatedDate" timestamp without time zone NOT NULL,
+    "StartedDate" timestamp without time zone,
+    CONSTRAINT "Game_pkey" PRIMARY KEY ("Id")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public."Game"
+    OWNER to postgres;
+
+
+-- Table: public.GamePlayer
+
+-- DROP TABLE public."GamePlayer";
+
+CREATE TABLE public."GamePlayer"
+(
+    "Id" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "PlayerId" integer NOT NULL,
+    "GameId" integer NOT NULL,
+    "SeatNumber" integer NOT NULL,
+    "Wager" integer,
+    "Ready" boolean NOT NULL,
+    CONSTRAINT "GamePlayer_pkey" PRIMARY KEY ("Id")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public."GamePlayer"
+    OWNER to postgres;
+
+
+-- Table: public.HandCard
+
+-- DROP TABLE public."HandCard";
+
+CREATE TABLE public."HandCard"
+(
+    "Id" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "GameId" integer NOT NULL,
+    "PlayerId" integer NOT NULL,
+    "CardId" integer NOT NULL,
+    CONSTRAINT "HandCard_pkey" PRIMARY KEY ("Id")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public."HandCard"
+    OWNER to postgres;
+
+
+-- Table: public.Player
+
+-- DROP TABLE public."Player";
+
+CREATE TABLE public."Player"
+(
+    "Id" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "Name" character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    "ConnectionId" character varying(1000) COLLATE pg_catalog."default" NOT NULL,
+    "KeepAlive" timestamp without time zone NOT NULL,
+    CONSTRAINT "Player_pkey" PRIMARY KEY ("Id")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public."Player"
+    OWNER to postgres;
+
+
+-- Table: public.Suit
+
+-- DROP TABLE public."Suit";
+
+CREATE TABLE public."Suit"
+(
+    "Id" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "Name" character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    "Char" character varying(1) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT "Suit_pkey" PRIMARY KEY ("Id")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public."Suit"
+    OWNER to postgres;
+
+
+-- Table: public.Trick
+
+-- DROP TABLE public."Trick";
+
+CREATE TABLE public."Trick"
+(
+    "Id" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "GameId" integer NOT NULL,
+    "WinningPlayerId" integer,
+    "Sequence" integer NOT NULL,
+    "CreatedDate" timestamp without time zone NOT NULL,
+    "CompletedDate" timestamp without time zone,
+    CONSTRAINT "Trick_pkey" PRIMARY KEY ("Id")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public."Trick"
+    OWNER to postgres;
+
+
+-- Table: public.TrickCard
+
+-- DROP TABLE public."TrickCard";
+
+CREATE TABLE public."TrickCard"
+(
+    "Id" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "TrickId" integer NOT NULL,
+    "PlayerId" integer NOT NULL,
+    "CardId" integer NOT NULL,
+    "Sequence" integer NOT NULL,
+    CONSTRAINT "TrickCard_pkey" PRIMARY KEY ("Id")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public."TrickCard"
+    OWNER to postgres;
+
+
+-- Table: public.Value
+
+-- DROP TABLE public."Value";
+
+CREATE TABLE public."Value"
+(
+    "Id" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "Name" character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    "Char" character varying(1) COLLATE pg_catalog."default" NOT NULL,
+    "Points" integer NOT NULL,
+    "Sequence" integer NOT NULL,
+    CONSTRAINT "Value_pkey" PRIMARY KEY ("Id")
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE public."Value"
+    OWNER to postgres;

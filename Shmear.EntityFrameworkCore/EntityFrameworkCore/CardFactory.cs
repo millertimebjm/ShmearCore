@@ -1,9 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
+namespace Shmear.EntityFramework.EntityFrameworkCore
 {
     public static class CardContextFactory
     {

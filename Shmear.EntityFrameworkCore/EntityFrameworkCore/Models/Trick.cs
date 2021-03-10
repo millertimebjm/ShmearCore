@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Shmear.EntityFramework.EntityFrameworkCore.SqlServer.Models
+namespace Shmear.EntityFramework.EntityFrameworkCore.Models
 {
     public partial class Trick
     {
