@@ -354,7 +354,7 @@ namespace Shmear.Business.Services
                     roundResult.TeamWager = 1;
                 if (board.Team2Wager > 0)
                     roundResult.TeamWager = 2;
-                
+
                 roundResult.TeamWagerValue = Math.Max(board.Team1Wager ?? 0, board.Team2Wager ?? 0);
 
                 return roundResult;
@@ -411,7 +411,7 @@ namespace Shmear.Business.Services
             }
         }
 
-        public static int DetermineWinningPlayerId(DbContextOptions<CardContext> options, int gameId, IEnumerable<TrickCard> trickCards)
+        public int DetermineWinningPlayerId(DbContextOptions<CardContext> options, int gameId, IEnumerable<TrickCard> trickCards)
         {
             var highestCard = DetermineWinningCard(options, gameId, trickCards);
             using (var db = CardContextFactory.Create(options))
@@ -444,7 +444,7 @@ namespace Shmear.Business.Services
                 return 1;
             else if (card1Value < card2Value)
                 return -1;
-            else 
+            else
                 return 0;
         }
     }
