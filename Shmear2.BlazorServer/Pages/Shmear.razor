@@ -1,4 +1,5 @@
 @page "/Shmear/{name}"
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Shmear: @name</PageTitle>
 
@@ -7,4 +8,10 @@
 @functions {
     [Parameter]
     public string name { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var connectionId = await JSRuntime.InvokeAsync<string>("getConnectionId", new { });
+        Console.WriteLine("Connection ID: " + connectionId);
+    }
 }

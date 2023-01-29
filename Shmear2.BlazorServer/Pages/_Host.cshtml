@@ -30,5 +30,12 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
+    <script src="_content/Microsoft.AspNetCore.SignalR.Client/dist/browser/signalr.js"></script>
+    <script>
+        function getConnectionId() {
+            return connection.connectionId;
+        }
+    </script>
+
 </body>
 </html>
