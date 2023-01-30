@@ -26,7 +26,7 @@ builder.Services.AddScoped<IShmearService, ShmearService>();
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 // builder.Services.AddScoped<IPlayerComputerService, PlayerComputerService>();
 
-builder.Services.AddServerSideBlazor();
+//builder.Services.AddServerSideBlazor();
 builder.Services.AddSignalR();
 
 var app = builder.Build();

@@ -11,7 +11,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var connectionId = await JSRuntime.InvokeAsync<string>("getConnectionId", new { });
-        Console.WriteLine("Connection ID: " + connectionId);
+        //var connectionId = await JSRuntime.InvokeAsync<string>("getConnectionId", new { });
+        //Console.WriteLine("Connection ID: " + connectionId);
+        Console.WriteLine("Connection ID: " + "test");
     }
 }

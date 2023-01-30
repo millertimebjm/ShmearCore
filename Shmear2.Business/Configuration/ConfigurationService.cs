@@ -13,7 +13,7 @@ public class ConfigurationService : IConfigurationService
 
     public string GetInMemoryDatabaseConnectionString()
     {
-        return "";
+        return _inMemoryDatabaseConnectionString;
     }
 
 
