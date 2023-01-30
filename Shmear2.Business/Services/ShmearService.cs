@@ -17,6 +17,10 @@ namespace Shmear2.Business.Services
             CardDbContext cardDb)
         {
             _cardDb = cardDb;
+
+            SeedValues();
+            SeedSuits();
+            SeedCards();
         }
 
         public static int[] GetTeam1PlayerSeats()

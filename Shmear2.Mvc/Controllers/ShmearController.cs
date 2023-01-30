@@ -21,13 +21,6 @@ public class ShmearController : Controller
         {
             return RedirectToAction("Index", "Home");
         }
-        // HttpContext.User = new GenericPrincipal(
-        //     new GenericIdentity(name), null);
-        var identity = new ClaimsIdentity(new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, name)
-        });
-        HttpContext.User = new ClaimsPrincipal(identity);
         var user = new ShmearModel()
         {
             Name = name

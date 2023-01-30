@@ -38,6 +38,7 @@ namespace Shmear2.Business.Services
         public CardService(CardDbContext cardDb)
         {
             _cardDb = cardDb;
+            SeedCards();
         }
 
         public async Task<IEnumerable<Card>> GetCards()
