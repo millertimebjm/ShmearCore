@@ -15,6 +15,23 @@
     }
 </style>
 
+
+
+<header>
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-1" id="card1"></div>
+            <div class="col-md-1" id="card2"></div>
+            <div class="col-md-1" id="card3"></div>
+            <div class="col-md-1" id="card4"></div>
+            <div class="col-md-1" id="card5"></div>
+            <div class="col-md-1" id="card6"></div>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+
 <h2 id="title">Pick a seat</h2>
 
 <div id="seatDiv" style="display: none;">
@@ -177,10 +194,12 @@
 </div>
 <br />
 <div id="messages" style="width: 60%;"></div>
-
+</div>
 <!-- Footer -->
-<footer class="page-footer bg-light 
-    d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+@* <footer class="page-footer bg-light 
+    d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top"> *@
+    @* <footer class="fixed-bottom">
+        <div class="container">
     <div class="row text-center">
         <div class="col-md-1" id="card1"></div>
         <div class="col-md-1" id="card2"></div>
@@ -189,7 +208,8 @@
         <div class="col-md-1" id="card5"></div>
         <div class="col-md-1" id="card6"></div>
     </div>
-</footer>
+    </div>
+</footer> *@
 <!-- Footer -->
 
 @*<script src="~/Hubs/"></script>*@
@@ -413,12 +433,24 @@
                     connection.invoke("SetWager", gameId, wager);
                 });
             }
-            $('#sendMessageButton').click(function () {
-                var message = parseInt($('#playerMessage').val());
+            $('#sendMessageButton').click(sendMessageButtonFunction);
+            $("#playerMessage").bind("keypress", checkPlayerMessageEnterKey);
+
+            function checkPlayerMessageEnterKey(e)
+            {
+                if(e.keyCode === 13) {
+                    e.preventDefault(); // Ensure it is only this code that runs
+                    sendMessageButtonFunction();
+                }
+            }
+
+            function sendMessageButtonFunction()
+            {
+                var message = $('#playerMessage').val();
                 console.log("SendChat being called from Client");
                 connection.invoke("SendChat", gameId, message);
                 $('#playerMessage').val('');
-            });
+            }
         });
     </script>
 }
