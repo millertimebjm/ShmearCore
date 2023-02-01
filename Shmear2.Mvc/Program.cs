@@ -14,6 +14,18 @@ builder.Services.AddSingleton<IConfigurationService>(_ =>
     new ConfigurationService(inMemoryDatabaseConnectionString: "InMemoryDatabaseConnectionString"));
 builder.Services.AddSignalR();
 
+builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(name: "AllowedCorsOrigins",
+                    builder =>
+                    {
+                        builder.AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .SetIsOriginAllowed((host) => true)
+                            .AllowCredentials();
+                    });
+            });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -29,6 +41,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseCors("AllowedCorsOrigins");
 app.UseAuthorization();
 
 app.MapControllerRoute(

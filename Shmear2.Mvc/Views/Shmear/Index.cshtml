@@ -32,183 +32,185 @@
 
 <div class="container">
 
-<h2 id="title">Pick a seat</h2>
+    <h2 id="title">Pick a seat</h2>
 
-<div id="seatDiv" style="display: none;">
-    <table>
-        <tr>
-            <td></td>
-            <td align="center"><button id="seat1" type="button" class="btn btn-primary seat" style="padding: 20px"
-                    value="1">1</button></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><button id="seat4" type="button" class="btn btn-primary seat" style="padding: 20px" value="4">4</button>
-            </td>
-            <td></td>
-            <td><button id="seat2" type="button" class="btn btn-primary seat" style="padding: 20px" value="2">2</button>
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td align="center"><button id="seat3" type="button" class="btn btn-primary seat" style="padding: 20px"
-                    value="3">3</button></td>
-            <td></td>
-        </tr>
-    </table>
-</div>
-<div id="cardDiv" style="display: none;">
-    <table>
-        <tr>
-            <td></td>
-            <td align="center">
-                <table style="width: 100px">
-                    <tr>
-                        <td class="player" id="player1" colspan="3"></td>
-                    </tr>
-                    <tr>
-                        <td class="card" id="player1card1"></td>
-                        <td class="card" id="player1card2"></td>
-                        <td class="card" id="player1card3"></td>
-                    </tr>
-                    <tr>
-                        <td class="card" id="player1card4"></td>
-                        <td class="card" id="player1card5"></td>
-                        <td class="card" id="player1card6"></td>
-                    </tr>
-                </table>
-            </td>
-            <td></td>
-        </tr>
-        <tr>
-            <td align="center">
-                <table style="width: 100px">
-                    <tr>
-                        <td class="player" id="player4" colspan="3"></td>
-                    </tr>
-                    <tr>
-                        <td class="card" id="player4card1"></td>
-                        <td class="card" id="player4card2"></td>
-                        <td class="card" id="player4card3"></td>
-                    </tr>
-                    <tr>
-                        <td class="card" id="player4card4"></td>
-                        <td class="card" id="player4card5"></td>
-                        <td class="card" id="player4card6"></td>
-                    </tr>
-                </table>
-            </td>
-            <td>
-                <table style="width: 100px;">
-                    <tr>
-                        <td class="card">
-                            <div id="wager0"><a id="wager0link" href="#">0</a></div>
-                        </td>
-                        <td class="card">
-                            <div id="player1arrow"
-                                style="-ms-transform: rotate(270deg); -webkit-transform: rotate(270deg);transform: rotate(270deg);">
-                                ▶</div>
-                        </td>
-                        <td class="card">
-                            <div id="wager2"><a id="wager2link" href="#">2</a></div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="card">
-                            <div id="player4arrow"
-                                style="-ms-transform: rotate(180deg); -webkit-transform: rotate(180deg);transform: rotate(180deg);">
-                                ▶</div>
-                        </td>
-                        <td class="card">
-                            <div id="wager3"><a id="wager3link" href="#">3</a></div>
-                        </td>
-                        <td class="card">
-                            <div id="player2arrow">▶</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="card">
-                            <div id="wager4"><a id="wager4link" href="#">4</a></div>
-                        </td>
-                        <td class="card">
-                            <div id="player3arrow"
-                                style="-ms-transform: rotate(90deg); -webkit-transform: rotate(90deg);transform: rotate(90deg);">
-                                ▶</div>
-                        </td>
-                        <td class="card">
-                            <div id="wager5"><a id="wager5link" href="#">5</a></div>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-            <td align="center">
-                <table style="width: 100px;">
-                    <tr>
-                        <td class="player" id="player2" colspan="3"></td>
-                    </tr>
-                    <tr>
-                        <td class="card" id="player2card1"></td>
-                        <td class="card" id="player2card2"></td>
-                        <td class="card" id="player2card3"></td>
-                    </tr>
-                    <tr>
-                        <td class="card" id="player2card4"></td>
-                        <td class="card" id="player2card5"></td>
-                        <td class="card" id="player2card6"></td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td align="center">
-                <table style="width: 100px">
-                    <tr>
-                        <td class="player" id="player3" colspan="3"></td>
-                    </tr>
-                    <tr>
-                        <td class="card" id="player3card1"></td>
-                        <td class="card" id="player3card2"></td>
-                        <td class="card" id="player3card3"></td>
-                    </tr>
-                    <tr>
-                        <td class="card" id="player3card4"></td>
-                        <td class="card" id="player3card5"></td>
-                        <td class="card" id="player3card6"></td>
-                    </tr>
-                </table>
-            </td>
-            <td></td>
-        </tr>
-    </table>
-</div>
-<br />
+    <div id="seatDiv" style="display: none;">
+        <table>
+            <tr>
+                <td></td>
+                <td align="center"><button id="seat1" type="button" class="btn btn-primary seat" style="padding: 20px"
+                        value="1">1</button></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><button id="seat4" type="button" class="btn btn-primary seat" style="padding: 20px"
+                        value="4">4</button>
+                </td>
+                <td></td>
+                <td><button id="seat2" type="button" class="btn btn-primary seat" style="padding: 20px"
+                        value="2">2</button>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td align="center"><button id="seat3" type="button" class="btn btn-primary seat" style="padding: 20px"
+                        value="3">3</button></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    <div id="cardDiv" style="display: none;">
+        <table>
+            <tr>
+                <td></td>
+                <td align="center">
+                    <table style="width: 100px">
+                        <tr>
+                            <td class="player" id="player1" colspan="3"></td>
+                        </tr>
+                        <tr>
+                            <td class="card" id="player1card1"></td>
+                            <td class="card" id="player1card2"></td>
+                            <td class="card" id="player1card3"></td>
+                        </tr>
+                        <tr>
+                            <td class="card" id="player1card4"></td>
+                            <td class="card" id="player1card5"></td>
+                            <td class="card" id="player1card6"></td>
+                        </tr>
+                    </table>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <table style="width: 100px">
+                        <tr>
+                            <td class="player" id="player4" colspan="3"></td>
+                        </tr>
+                        <tr>
+                            <td class="card" id="player4card1"></td>
+                            <td class="card" id="player4card2"></td>
+                            <td class="card" id="player4card3"></td>
+                        </tr>
+                        <tr>
+                            <td class="card" id="player4card4"></td>
+                            <td class="card" id="player4card5"></td>
+                            <td class="card" id="player4card6"></td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <table style="width: 100px;">
+                        <tr>
+                            <td class="card">
+                                <div id="wager0"><a id="wager0link" href="#">0</a></div>
+                            </td>
+                            <td class="card">
+                                <div id="player1arrow"
+                                    style="-ms-transform: rotate(270deg); -webkit-transform: rotate(270deg);transform: rotate(270deg);">
+                                    ▶</div>
+                            </td>
+                            <td class="card">
+                                <div id="wager2"><a id="wager2link" href="#">2</a></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="card">
+                                <div id="player4arrow"
+                                    style="-ms-transform: rotate(180deg); -webkit-transform: rotate(180deg);transform: rotate(180deg);">
+                                    ▶</div>
+                            </td>
+                            <td class="card">
+                                <div id="wager3"><a id="wager3link" href="#">3</a></div>
+                            </td>
+                            <td class="card">
+                                <div id="player2arrow">▶</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="card">
+                                <div id="wager4"><a id="wager4link" href="#">4</a></div>
+                            </td>
+                            <td class="card">
+                                <div id="player3arrow"
+                                    style="-ms-transform: rotate(90deg); -webkit-transform: rotate(90deg);transform: rotate(90deg);">
+                                    ▶</div>
+                            </td>
+                            <td class="card">
+                                <div id="wager5"><a id="wager5link" href="#">5</a></div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td align="center">
+                    <table style="width: 100px;">
+                        <tr>
+                            <td class="player" id="player2" colspan="3"></td>
+                        </tr>
+                        <tr>
+                            <td class="card" id="player2card1"></td>
+                            <td class="card" id="player2card2"></td>
+                            <td class="card" id="player2card3"></td>
+                        </tr>
+                        <tr>
+                            <td class="card" id="player2card4"></td>
+                            <td class="card" id="player2card5"></td>
+                            <td class="card" id="player2card6"></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td align="center">
+                    <table style="width: 100px">
+                        <tr>
+                            <td class="player" id="player3" colspan="3"></td>
+                        </tr>
+                        <tr>
+                            <td class="card" id="player3card1"></td>
+                            <td class="card" id="player3card2"></td>
+                            <td class="card" id="player3card3"></td>
+                        </tr>
+                        <tr>
+                            <td class="card" id="player3card4"></td>
+                            <td class="card" id="player3card5"></td>
+                            <td class="card" id="player3card6"></td>
+                        </tr>
+                    </table>
+                </td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    <br />
 
 
-<div>
-    <button id="leave" class="btn btn-danger">Leave Game</button>
-    <button id="ready" class="btn btn-default" style="display: none;">Not Ready</button>
-</div>
-<br />
-<div><input id="playerMessage" type="text" /><button id="sendMessageButton" type="button" value="send">Send</button>
-</div>
-<br />
-<div id="messages" style="width: 60%;"></div>
+    <div>
+        <button id="leave" class="btn btn-danger">Leave Game</button>
+        <button id="ready" class="btn btn-default" style="display: none;">Not Ready</button>
+    </div>
+    <br />
+    <div><input id="playerMessage" type="text" /><button id="sendMessageButton" type="button" value="send">Send</button>
+    </div>
+    <br />
+    <div id="messages" style="width: 60%;"></div>
 </div>
 <!-- Footer -->
-@* <footer class="page-footer bg-light 
-    d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top"> *@
-    @* <footer class="fixed-bottom">
-        <div class="container">
-    <div class="row text-center">
-        <div class="col-md-1" id="card1"></div>
-        <div class="col-md-1" id="card2"></div>
-        <div class="col-md-1" id="card3"></div>
-        <div class="col-md-1" id="card4"></div>
-        <div class="col-md-1" id="card5"></div>
-        <div class="col-md-1" id="card6"></div>
-    </div>
-    </div>
+@* <footer class="page-footer bg-light
+d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top"> *@
+@* <footer class="fixed-bottom">
+<div class="container">
+<div class="row text-center">
+<div class="col-md-1" id="card1"></div>
+<div class="col-md-1" id="card2"></div>
+<div class="col-md-1" id="card3"></div>
+<div class="col-md-1" id="card4"></div>
+<div class="col-md-1" id="card5"></div>
+<div class="col-md-1" id="card6"></div>
+</div>
+</div>
 </footer> *@
 <!-- Footer -->
 
@@ -236,6 +238,8 @@
             console.log("Connection Created");
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/shmearHub")
+                .WithKeepAliveInterval(30)
+                .WithConnectionTimeout(600)
                 .build();
             function getParameterByName(name) {
                 name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -436,16 +440,14 @@
             $('#sendMessageButton').click(sendMessageButtonFunction);
             $("#playerMessage").bind("keypress", checkPlayerMessageEnterKey);
 
-            function checkPlayerMessageEnterKey(e)
-            {
-                if(e.keyCode === 13) {
+            function checkPlayerMessageEnterKey(e) {
+                if (e.keyCode === 13) {
                     e.preventDefault(); // Ensure it is only this code that runs
                     sendMessageButtonFunction();
                 }
             }
 
-            function sendMessageButtonFunction()
-            {
+            function sendMessageButtonFunction() {
                 var message = $('#playerMessage').val();
                 console.log("SendChat being called from Client");
                 connection.invoke("SendChat", gameId, message);
