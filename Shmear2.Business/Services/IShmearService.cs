@@ -26,6 +26,7 @@ public interface IShmearService
     Task<GamePlayer> GetNextWagerPlayer(int gameId);
     Task<GamePlayer> GetNextCardPlayer(int gameId, int trickId);
     Task SetWager(int gameId, int playerId, int wager);
+    Task<int> GetHighestWager(int gameId);
     Task<RoundResult> EndRound(int gameId);
     Task<RoundResult> DeterminePointsByTeam(int gameId);
     Card DetermineWinningCard(int gameId, IEnumerable<TrickCard> trickCards);

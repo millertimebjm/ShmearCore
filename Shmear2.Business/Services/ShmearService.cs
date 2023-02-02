@@ -388,6 +388,14 @@ namespace Shmear2.Business.Services
             return nextPlayer;
         }
 
+        public async Task<int> GetHighestWager(int gameId)
+        {
+            var board = await GetBoardByGameId(gameId);
+            var gamePlayers = (await GetGamePlayers(gameId)).OrderBy(_ => _.SeatNumber).ToList();
+            var maxWager = gamePlayers.Max(_ => _.Wager) ?? 1;
+            return maxWager;
+        }
+
         public async Task<GamePlayer> GetNextCardPlayer(int gameId, int trickId)
         {
             var gamePlayers = (await GetGamePlayers(gameId)).OrderBy(_ => _.SeatNumber).ToList();
