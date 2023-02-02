@@ -233,10 +233,11 @@ namespace Shmear2.Mvc.Hubs
             if (nextGamePlayer is null || highestWager == 5)
             {
                 var trick = _shmearService.CreateTrick(gameId);
-                var gamePlayer = _shmearService.GetNextCardPlayer(gameId, trick.Id);
+                var nextCardPlayer = await _shmearService.GetNextCardPlayer(gameId, trick.Id);
+                var gamePlayers = (await _shmearService.GetGamePlayers(gameId)).ToArray();
                 for (var i = 0; i < 4; i++)
                 {
-                    await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", gamePlayer.SeatNumber);
+                    await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", nextCardPlayer.SeatNumber);
                 }
             }
             var player = await _playerService.GetPlayer(nextGamePlayer.PlayerId);
