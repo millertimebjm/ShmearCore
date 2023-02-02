@@ -194,9 +194,8 @@ namespace Shmear2.Mvc.Hubs
                     });
                 }
                 await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("CardUpdate", cards.ToArray());
-
-                RequestWager(gameId);
             }
+            StartWager(gameId);
 
             // gamePlayers = (await _shmearService.GetGamePlayers(gameId)).ToArray();
             // if (gamePlayers.Count(_ => _.Wager != null) == 4 || gamePlayers.Max(_ => (_.Wager ?? 0) == 5))
@@ -226,41 +225,52 @@ namespace Shmear2.Mvc.Hubs
             // }
         }
 
-        public async Task RequestWager(int gameId)
+        public async Task StartWager(int gameId)
         {
+            var gamePlayers = (await _shmearService.GetGamePlayers(gameId)).ToArray();
+            var nextWagerPlayer = await _shmearService.GetNextWagerPlayer(gameId);
             var highestWager = await _shmearService.GetHighestWager(gameId);
-            var nextGamePlayer = await _shmearService.GetNextWagerPlayer(gameId);
-            if (nextGamePlayer is null || highestWager == 5)
+            for (var i = 0; i < 4; i++)
             {
-                var trick = _shmearService.CreateTrick(gameId);
-                var nextCardPlayer = await _shmearService.GetNextCardPlayer(gameId, trick.Id);
-                var gamePlayers = (await _shmearService.GetGamePlayers(gameId)).ToArray();
-                for (var i = 0; i < 4; i++)
-                {
-                    await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", nextCardPlayer.SeatNumber);
-                }
+                await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerWagerUpdate", nextWagerPlayer.SeatNumber, highestWager);
             }
-            var player = await _playerService.GetPlayer(nextGamePlayer.PlayerId);
-            await Clients.Client(nextGamePlayer.Player.ConnectionId).SendAsync("RequestWager", highestWager);
         }
 
         public async Task SetWager(int gameId, int wager)
         {
             var gamePlayers = (await _shmearService.GetGamePlayers(gameId)).ToArray();
-            var nextGamePlayer = await _shmearService.GetNextWagerPlayer(gameId);
+            var nextWagerPlayer = await _shmearService.GetNextWagerPlayer(gameId);
             var player = await _playerService.GetPlayer(Context.ConnectionId);
-            if (nextGamePlayer.PlayerId == player.Id && gamePlayers.Select(_ => _.PlayerId).Contains(player.Id))
+            if (nextWagerPlayer.PlayerId == player.Id && gamePlayers.Select(_ => _.PlayerId).Contains(player.Id))
             {
                 await _shmearService.SetWager(gameId, player.Id, wager);
                 await SendMessage(gameId, player.Name + " wagered " + wager);
-                RequestWager(gameId);
+                nextWagerPlayer = await _shmearService.GetNextWagerPlayer(gameId);
+                var highestWager = await _shmearService.GetHighestWager(gameId);
+                if (nextWagerPlayer is null || highestWager == 5)
+                {
+                    var trick = await _shmearService.CreateTrick(gameId);
+                    var nextCardPlayer = await _shmearService.GetNextCardPlayer(gameId, trick.Id);
+                    for (var i = 0; i < 4; i++)
+                    {
+                        await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", nextCardPlayer.SeatNumber);
+                    }
+                }
+                else
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerWagerUpdate", nextWagerPlayer.SeatNumber, highestWager);
+                    }
+                }
             }
         }
 
-        public async Task<bool> PlayCard(int gameId, int cardId)
+        public async Task PlayCard(int gameId, string cardIdString)
         {
+            var cardId = int.Parse(cardIdString);
             var card = await _shmearService.GetCardAsync(cardId);
-            var gamePlayers = await _shmearService.GetGamePlayers(gameId);
+            var gamePlayers = (await _shmearService.GetGamePlayers(gameId)).ToArray();
             if (gamePlayers.Count(_ => _.Wager != null) == 4 || gamePlayers.Max(_ => (_.Wager ?? 0) == 5))
             {
                 var player = await _playerService.GetPlayer(Context.ConnectionId);
@@ -276,6 +286,10 @@ namespace Shmear2.Mvc.Hubs
                 {
                     trick = await _shmearService.PlayCard(trick.Id, player.Id, cardId);
                     await SendMessage(gameId, "<p>" + player.Name + " played " + card.Suit.Char + card.Value.Char + "</p>");
+                    for (var i = 0; i < 4; i++)
+                    {
+                        await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("CardPlayed", nextCardGamePlayer.SeatNumber, cardId, card.Value.Name + card.Suit.Name);
+                    }
 
                     // Check to see if the Trick is over
                     trickCards = await _shmearService.GetTrickCards(trick.Id);
@@ -290,10 +304,8 @@ namespace Shmear2.Mvc.Hubs
                             await EndRound(gameId);
                         }
                     }
-                    return true;
                 }
             }
-            return false;
         }
 
         private async Task EndTrick(int gameId, Trick trick)

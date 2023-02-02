@@ -18,9 +18,12 @@ namespace Shmear2.Business.Services
         {
             _cardDb = cardDb;
 
-            SeedValues();
-            SeedSuits();
-            SeedCards();
+            if (!HasAnyCard())
+            {
+                SeedValues();
+                SeedSuits();
+                SeedCards();
+            }
         }
 
         public static int[] GetTeam1PlayerSeats()
@@ -743,6 +746,10 @@ namespace Shmear2.Business.Services
             return true;
         }
 
+        public bool HasAnyCard()
+        {
+            return _cardDb.Card.Any();
+        }
         public bool SeedValues()
         {
             var values = new List<Value>()
