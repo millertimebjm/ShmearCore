@@ -47,27 +47,33 @@
                 <div class="col-2"></div>
             </div>
         </div>
-        
+
         <div id="gameDiv" style="display: none;">
             <div class="row">
                 <div class="col d-none d-md-block"></div>
                 <div class="col">
-                    <div class="shadow bg-body rounded"><img src="images/Cards/Empty.png" class="img-fluid card"></div>
+                    <div class="shadow bg-body rounded" draggable="true" id="card1"><img src="images/Cards/Empty.png"
+                            class="img-fluid card" id="card1Img"></div>
                 </div>
                 <div class="col">
-                    <div class="shadow bg-body rounded"><img src="images/Cards/Empty.png" class="img-fluid card"></div>
+                    <div class="shadow bg-body rounded" draggable="true" id="card2"><img src="images/Cards/Empty.png"
+                            class="img-fluid card" id="card2Img"></div>
                 </div>
                 <div class="col">
-                    <div class="shadow bg-body rounded"><img src="images/Cards/Empty.png" class="img-fluid card"></div>
+                    <div class="shadow bg-body rounded" draggable="true"><img src="images/Cards/Empty.png"
+                            class="img-fluid card" id="card3Img"></div>
                 </div>
                 <div class="col">
-                    <div class="shadow bg-body rounded"><img src="images/Cards/Empty.png" class="img-fluid card"></div>
+                    <div class="shadow bg-body rounded" draggable="true"><img src="images/Cards/Empty.png"
+                            class="img-fluid card" id="card4Img"></div>
                 </div>
                 <div class="col">
-                    <div class="shadow bg-body rounded"><img src="images/Cards/Empty.png" class="img-fluid card"></div>
+                    <div class="shadow bg-body rounded" draggable="true"><img src="images/Cards/Empty.png"
+                            class="img-fluid card" id="card5Img"></div>
                 </div>
                 <div class="col">
-                    <div class="shadow bg-body rounded"><img src="images/Cards/Empty.png" class="img-fluid card"></div>
+                    <div class="shadow bg-body rounded" draggable="true"><img src="images/Cards/Empty.png"
+                            class="img-fluid card" id="card6Img"></div>
                 </div>
                 <div class="col d-none d-md-block"></div>
             </div>
@@ -75,19 +81,24 @@
             <div class="row align-self-center" id="wagerDiv" style="display: none;">
                 <div class="offset-md-3 col-md-6">
                     <div class="row">
-                        <div class="col text-center shadow bg-body rounded ms-3 me-3 wager" style="width: 30px;" data-wager="0">
+                        <div class="col text-center shadow bg-body rounded ms-3 me-3 wager" style="width: 30px;"
+                            data-wager="0">
                             <h2>Skip</h2>
                         </div>
-                        <div class="col text-center shadow bg-body rounded ms-3 me-3 wager" style="width: 30px;" data-wager="2">
+                        <div class="col text-center shadow bg-body rounded ms-3 me-3 wager" style="width: 30px;"
+                            data-wager="2">
                             <h2>2</h2>
                         </div>
-                        <div class="col text-center shadow bg-body rounded ms-3 me-3 wager" style="width: 30px;" data-wager="3">
+                        <div class="col text-center shadow bg-body rounded ms-3 me-3 wager" style="width: 30px;"
+                            data-wager="3">
                             <h2>3</h2>
                         </div>
-                        <div class="col text-center shadow bg-body rounded ms-3 me-3 wager" style="width: 30px;" data-wager="4">
+                        <div class="col text-center shadow bg-body rounded ms-3 me-3 wager" style="width: 30px;"
+                            data-wager="4">
                             <h2>4</h2>
                         </div>
-                        <div class="col text-center shadow bg-body rounded ms-3 me-3 wager" style="width: 30px;" data-wager="5">
+                        <div class="col text-center shadow bg-body rounded ms-3 me-3 wager" style="width: 30px;"
+                            data-wager="5">
                             <h2>5</h2>
                         </div>
                     </div>
@@ -102,6 +113,9 @@
                         <input id="playerMessage" type="text">
                         <button id="sendMessageButton" type="button" value="send">Send</button>
                     </div>
+                    <br />
+                    <br />
+                    <div id="messages"></div>
                 </div>
                 <div class="col">
                     <div class="row">
@@ -124,13 +138,14 @@
                     </div>
                     <div class="row">
                         <div class="col">
-                            <div class="shadow bg-body rounded"><img src="images/Cards/Empty.png" class="img-fluid" id="leftPlayerCard">
+                            <div class="shadow bg-body rounded"><img src="images/Cards/Empty.png" class="img-fluid"
+                                    id="leftPlayerCard">
                             </div>
                         </div>
                         <div class="col"></div>
                         <div class="col">
                             <div class="shadow bg-body rounded">
-                                <img src="images/Cards/Empty.png" class="img-fluid"  id="rightPlayerCard">
+                                <img src="images/Cards/Empty.png" class="img-fluid" id="rightPlayerCard">
                             </div>
                         </div>
                     </div>
@@ -138,7 +153,7 @@
                         <div class="col"></div>
                         <div class="col">
                             <div class="shadow bg-body rounded">
-                                <img src="images/Cards/Empty.png" class="img-fluid"  id="playerCard">
+                                <img src="images/Cards/Empty.png" class="img-fluid" id="playerCard">
                             </div>
                         </div>
                         <div class="col"></div>
@@ -148,6 +163,9 @@
                     <div class="text-center">
                         <h2>Log</h2>
                     </div>
+                    <br />
+                    <br />
+                    <div id="logs"></div>
                 </div>
             </div>
         </div>

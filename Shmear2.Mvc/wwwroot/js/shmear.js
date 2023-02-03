@@ -1,4 +1,4 @@
-// var seats = ['', '', '', ''];
+﻿// var seats = ['', '', '', ''];
 // var buttons;
 // var shmearHub;
 var gameId = 0;
@@ -48,21 +48,39 @@ $().ready(function () {
         gameId = openGameId;
         // seatButtonUpdate();
     });
+
+    document.addEventListener("dragstart", function (event) {
+        console.log("dragstart - " + event.target.id);
+        event.dataTransfer.setData("text/plain", event.target.id);
+    });
+    document.addEventListener("dragover", function (event) {
+        event.preventDefault();
+    });
+    document.addEventListener("drop", function (event) {
+        console.log("drop - + " + event.target.id);
+        event.preventDefault();
+        var data = event.dataTransfer.getData("Text");
+        if (data.includes("card")
+            && data.includes("Img")
+            && event.target.id.includes("card")
+            && event.target.id.includes("Img")) {
+            var tempCardId = $("#" + data).data("cardid");
+            var tempCardName = $("#" + data).attr("src");
+            $("#" + data).data("cardid", $("#" + event.target.id).data("cardid"));
+            $("#" + data).attr("src", $("#" + event.target.id).attr("src"));
+            $("#" + event.target.id).data("cardid", tempCardId);
+            $("#" + event.target.id).attr("src", tempCardName);
+        }
+    });
+
     $(".card").on("click", function (e) {
         console.log(e.target);
         var cardId = $(e.target).closest(".card").data("cardid");
         console.log("PlayCard being called from Client - gameId: " + gameId + " | cardId: " + cardId);
         var promise = connection.invoke("PlayCard", gameId, cardId);
-        // promise.then(function (output) {
-        //     if (output) {
-        //         console.log("PlayCard was successful with cardId: " + cardId);
-        //         var playedCard = $('.card[data-cardid="' + cardId + '"]');
-        //         $(playedCard).attr("src", "images/Cards/Empty.png");
-        //         $(playedCard).data("cardid", 0);
-        //     }
-        // });
     });
     connection.on("CardPlayed", (seatNumber, cardId, cardName) => {
+        resetIfFirstCardInNewTrick();
         console.log("CardPlayed called from Server - seatNumber: " + seatNumber + " | cardId: " + cardId + " | cardName: " + cardName);
         var jqueryCardObject = getGameCardBySeatNumber(seatNumber);
         $(jqueryCardObject).attr("src", "/images/Cards/" + cardName + ".png");
@@ -70,7 +88,7 @@ $().ready(function () {
             if ($(value).data("cardid") == cardId) {
                 $(value).attr("src", "/images/Cards/Empty.png");
             }
-        })
+        });
     });
     $(".seat").on("click", function (e) {
         console.log(e.target);
@@ -124,13 +142,7 @@ $().ready(function () {
     }
     connection.on("PlayerTurnUpdate", (playerSeatTurn) => {
         console.log("PlayerTurnUpdate being called from Server");
-        for (i = 1; i < 5; i++) {
-            if (playerSeatTurn === i) {
-                $('#player'.concat(i).concat('arrow')).show();
-            } else {
-                $('#player'.concat(i).concat('arrow')).hide();
-            }
-        }
+
     });
     function getGameCardBySeatNumber(seatNumber) {
         console.log("getPositionBySeatNumber called.");
@@ -151,7 +163,42 @@ $().ready(function () {
             return $("#playerCard");
         }
     }
-    
+    function resetIfFirstCardInNewTrick() {
+        if (!$("#leftPlayerCard").attr("src").includes("Empty.png")
+            && !$("#oppositePlayerCard").attr("src").includes("Empty.png")
+            && !$("#rightPlayerCard").attr("src").includes("Empty.png")
+            && !$("#playerCard").attr("src").includes("Empty.png")) {
+            $("#leftPlayerCard").attr("src", "/images/Cards/Empty.png");
+            $("#oppositePlayerCard").attr("src", "/images/Cards/Empty.png");
+            $("#rightPlayerCard").attr("src", "/images/Cards/Empty.png");
+            $("#playerCard").attr("src", "/images/Cards/Empty.png");
+        }
+    }
+    connection.on("SendMessage", (message) => {
+        console.log("SendMessage being called from Server");
+        $('#messages').html('<p>'.concat(message).concat('</p>').concat($('#messages').html()));
+    });
+    connection.on("SendLog", (message) => {
+        console.log("SendLog being called from Server");
+        $('#logs').html('<p>'.concat(message).concat('</p>').concat($('#logs').html()));
+    });
+    $('#sendMessageButton').click(sendMessageButtonFunction);
+    $("#playerMessage").bind("keypress", checkPlayerMessageEnterKey);
+
+    function checkPlayerMessageEnterKey(e) {
+        if (e.keyCode === 13) {
+            e.preventDefault(); // Ensure it is only this code that runs
+            sendMessageButtonFunction();
+        }
+    }
+
+    function sendMessageButtonFunction() {
+        var message = $('#playerMessage').val();
+        console.log("SendChat being called from Client");
+        connection.invoke("SendChat", gameId, message);
+        $('#playerMessage').val('');
+    }
+
     // connection.on("CardUpdate", (playerIndex, cards, cardCountBySeat) => {
     //     console.log("CardUpdate called from Server");
     //     for (i = 0; i < 6; i++) {
@@ -220,10 +267,6 @@ $().ready(function () {
     //             wagers[i].hide();
     //         }
     //     }
-    // });
-    // connection.on("SendMessage", (message) => {
-    //     console.log("SendMessage being called from Server");
-    //     $('#messages').html('<p>'.concat(message).concat('</p>').concat($('#messages').html()));
     // });
     // $('#wager0link').click(function () {
     //     var wager = parseInt($('#wager0').text());

@@ -244,7 +244,7 @@ namespace Shmear2.Mvc.Hubs
             if (nextWagerPlayer.PlayerId == player.Id && gamePlayers.Select(_ => _.PlayerId).Contains(player.Id))
             {
                 await _shmearService.SetWager(gameId, player.Id, wager);
-                await SendMessage(gameId, player.Name + " wagered " + wager);
+                await SendLog(gameId, player.Name + " wagered " + wager);
                 nextWagerPlayer = await _shmearService.GetNextWagerPlayer(gameId);
                 var highestWager = await _shmearService.GetHighestWager(gameId);
                 if (nextWagerPlayer is null || highestWager == 5)
@@ -285,7 +285,7 @@ namespace Shmear2.Mvc.Hubs
                     && await _shmearService.ValidCardPlay(gameId, board.Id, player.Id, cardId))
                 {
                     trick = await _shmearService.PlayCard(trick.Id, player.Id, cardId);
-                    await SendMessage(gameId, "<p>" + player.Name + " played " + card.Suit.Char + card.Value.Char + "</p>");
+                    await SendLog(gameId, "<p>" + player.Name + " played " + card.Suit.Char + card.Value.Char + "</p>");
                     for (var i = 0; i < 4; i++)
                     {
                         await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("CardPlayed", nextCardGamePlayer.SeatNumber, cardId, card.Value.Name + card.Suit.Name);
@@ -302,6 +302,15 @@ namespace Shmear2.Mvc.Hubs
                         if (!handCards.Any())
                         {
                             await EndRound(gameId);
+                        }
+                        else
+                        {
+                            trick = await _shmearService.CreateTrick(gameId);
+                            for (int i = 0; i < 4; i++)
+                            {
+                                var gamePlayer = await _shmearService.GetNextCardPlayer(gameId, trick.Id);
+                                await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", gamePlayer.SeatNumber);
+                            }
                         }
                     }
                 }
@@ -322,7 +331,7 @@ namespace Shmear2.Mvc.Hubs
                 trickString.Append(cardInTrick.Value.Char);
                 trickString.Append(" ");
             }
-            await SendMessage(gameId, "<p>" + winningPlayer.Name + " won the trick. " + trickString + "</p>");
+            await SendLog(gameId, "<p>" + winningPlayer.Name + " won the trick. " + trickString + "</p>");
         }
 
         private async Task EndRound(int gameId)
@@ -335,14 +344,15 @@ namespace Shmear2.Mvc.Hubs
             game = await _shmearService.SaveRoundChange(game.Id, game.Team1Points, game.Team2Points);
 
             string s1 = roundResult.Team1RoundChange == 1 ? "" : "s";
-            await SendMessage(gameId, string.Format($"<p>Team 1 {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
+            await SendLog(gameId, string.Format($"<p>Team 1 {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
 
             string s2 = roundResult.Team2RoundChange == 1 ? "" : "s";
-            await SendMessage(gameId, string.Format($"<p>Team 2 {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
+            await SendLog(gameId, string.Format($"<p>Team 2 {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
 
             _shmearService.ClearTricks(gameId);
             await _shmearService.StartRound(gameId);
             await _shmearService.DealCards(gameId);
+            await SendCards(gameId);
         }
 
         private string WagerResult(RoundResult roundResult, int teamId)
@@ -359,12 +369,23 @@ namespace Shmear2.Mvc.Hubs
             await Clients.Client(connectionId).SendAsync("SendMessage", message);
         }
 
+        private async Task SendLog(string connectionId, string message)
+        {
+            await Clients.Client(connectionId).SendAsync("SendLog", message);
+        }
+
+        private async Task SendLog(int gameId, string message)
+        {
+            var gamePlayers = await _shmearService.GetGamePlayers(gameId);
+            foreach (var gamePlayer in gamePlayers)
+                await SendLog(gamePlayer.Player.ConnectionId, message);
+        }
+
         private async Task SendMessage(int gameId, string message)
         {
             var gamePlayers = await _shmearService.GetGamePlayers(gameId);
             foreach (var gamePlayer in gamePlayers)
                 await SendMessage(gamePlayer.Player.ConnectionId, message);
-
         }
 
         public async Task SendChat(int gameId, string message)
