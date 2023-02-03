@@ -173,13 +173,6 @@ namespace Shmear2.Mvc.Hubs
         {
             var game = await _shmearService.GetGame(gameId);
             var gamePlayers = (await _shmearService.GetGamePlayers(game.Id)).OrderBy(_ => _.SeatNumber).ToArray();
-            //var cardCountByPlayerIndex = new int[4];
-
-            // for (int i = 0; i < 4; i++)
-            // {
-            //     var hand = await _shmearService.GetHand(game.Id, gamePlayers[i].PlayerId);
-            //     cardCountByPlayerIndex[i] = hand.Count();
-            // }
 
             for (int i = 0; i < 4; i++)
             {
@@ -196,33 +189,6 @@ namespace Shmear2.Mvc.Hubs
                 await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("CardUpdate", cards.ToArray());
             }
             StartWager(gameId);
-
-            // gamePlayers = (await _shmearService.GetGamePlayers(gameId)).ToArray();
-            // if (gamePlayers.Count(_ => _.Wager != null) == 4 || gamePlayers.Max(_ => (_.Wager ?? 0) == 5))
-            // {
-            //     var trick = (await _shmearService.GetTricks(gameId)).SingleOrDefault(_ => _.CompletedDate == null);
-            //     if (trick == null)
-            //     {
-            //         trick = await _shmearService.CreateTrick(gameId);
-            //     }
-            //     var gamePlayer = await _shmearService.GetNextCardPlayer(gameId, trick.Id);
-            //     for (var i = 0; i < 4; i++)
-            //     {
-            //         await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("HideWager");
-            //         await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", gamePlayer.SeatNumber);
-            //     }
-            // }
-            // else
-            // {
-            //     var gamePlayer = await _shmearService.GetNextWagerPlayer(gameId);
-            //     var highestWager = gamePlayers.Max(_ => _.Wager ?? 0);
-
-            //     for (var i = 0; i < 4; i++)
-            //     {
-            //         await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", gamePlayer.SeatNumber);
-            //         await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("WagerUpdate", highestWager);
-            //     }
-            // }
         }
 
         public async Task StartWager(int gameId)
