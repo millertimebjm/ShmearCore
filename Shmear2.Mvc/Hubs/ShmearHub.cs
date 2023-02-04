@@ -159,9 +159,14 @@ namespace Shmear2.Mvc.Hubs
 
         private async Task CheckStartGame(int gameId)
         {
-            var gamePlayers = await _shmearService.GetGamePlayers(gameId);
+            var gamePlayers = (await _shmearService.GetGamePlayers(gameId)).ToArray();
             if (gamePlayers.Count() == 4 && await _shmearService.StartGame(gameId))
             {
+                var gamePlayerArray = gamePlayers.Select(_ => new string[] { _.SeatNumber.ToString(), _.Player.Name });
+                for (int i = 0; i < 4; i++)
+                {
+                    Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("GamePlayerUpdate", gamePlayerArray);
+                }
                 await _shmearService.StartRound(gameId);
                 await _shmearService.DealCards(gameId);
 
@@ -207,7 +212,7 @@ namespace Shmear2.Mvc.Hubs
             var gamePlayers = (await _shmearService.GetGamePlayers(gameId)).ToArray();
             var nextWagerPlayer = await _shmearService.GetNextWagerPlayer(gameId);
             var player = await _playerService.GetPlayer(Context.ConnectionId);
-            if (nextWagerPlayer.PlayerId == player.Id && gamePlayers.Select(_ => _.PlayerId).Contains(player.Id))
+            if (nextWagerPlayer?.PlayerId == player.Id && gamePlayers.Select(_ => _.PlayerId).Contains(player.Id))
             {
                 await _shmearService.SetWager(gameId, player.Id, wager);
                 await SendLog(gameId, player.Name + " wagered " + wager);
@@ -244,9 +249,9 @@ namespace Shmear2.Mvc.Hubs
                 var board = await _shmearService.GetBoardByGameId(gameId);
                 var trick = (await _shmearService.GetTricks(gameId)).Single(_ => _.CompletedDate == null);
                 var trickCards = await _shmearService.GetTrickCards(trick.Id);
-                var nextCardGamePlayer = await _shmearService.GetNextCardPlayer(gameId, trick.Id);
+                var currentCardGamePlayer = await _shmearService.GetNextCardPlayer(gameId, trick.Id);
 
-                if (nextCardGamePlayer.PlayerId == player.Id
+                if (currentCardGamePlayer.PlayerId == player.Id
                     && handCards.Any(_ => _.CardId == cardId)
                     && await _shmearService.ValidCardPlay(gameId, board.Id, player.Id, cardId))
                 {
@@ -254,7 +259,7 @@ namespace Shmear2.Mvc.Hubs
                     await SendLog(gameId, "<p>" + player.Name + " played " + card.Suit.Char + card.Value.Char + "</p>");
                     for (var i = 0; i < 4; i++)
                     {
-                        await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("CardPlayed", nextCardGamePlayer.SeatNumber, cardId, card.Value.Name + card.Suit.Name);
+                        await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("CardPlayed", currentCardGamePlayer.SeatNumber, cardId, card.Value.Name + card.Suit.Name);
                     }
 
                     // Check to see if the Trick is over
@@ -272,11 +277,19 @@ namespace Shmear2.Mvc.Hubs
                         else
                         {
                             trick = await _shmearService.CreateTrick(gameId);
+                            var gamePlayer = await _shmearService.GetNextCardPlayer(gameId, trick.Id);
                             for (int i = 0; i < 4; i++)
                             {
-                                var gamePlayer = await _shmearService.GetNextCardPlayer(gameId, trick.Id);
                                 await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", gamePlayer.SeatNumber);
                             }
+                        }
+                    }
+                    else
+                    {
+                        var gamePlayer = await _shmearService.GetNextCardPlayer(gameId, trick.Id);
+                        for (int i = 0; i < 4; i++)
+                        {
+                            await Clients.Client(gamePlayers[i].Player.ConnectionId).SendAsync("PlayerTurnUpdate", gamePlayer.SeatNumber);
                         }
                     }
                 }
@@ -305,15 +318,20 @@ namespace Shmear2.Mvc.Hubs
             var roundResult = await _shmearService.EndRound(gameId);
 
             var game = await _shmearService.GetGame(gameId);
+
+            var seatsArray = await GetSeatsArray(gameId);
+            var team1Names = $"{seatsArray[0]} and {seatsArray[2]}";
+            var team2Names = $"{seatsArray[1]} and {seatsArray[3]}";
+
             game.Team1Points += roundResult.Team1RoundChange;
             game.Team2Points += roundResult.Team2RoundChange;
             game = await _shmearService.SaveRoundChange(game.Id, game.Team1Points, game.Team2Points);
 
             string s1 = roundResult.Team1RoundChange == 1 ? "" : "s";
-            await SendLog(gameId, string.Format($"<p>Team 1 {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
+            await SendLog(gameId, string.Format($"<p>Team 1 ({team1Names}) {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
 
             string s2 = roundResult.Team2RoundChange == 1 ? "" : "s";
-            await SendLog(gameId, string.Format($"<p>Team 2 {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
+            await SendLog(gameId, string.Format($"<p>Team 2 ({team2Names}) {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
 
             _shmearService.ClearTricks(gameId);
             await _shmearService.StartRound(gameId);

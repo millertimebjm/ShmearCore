@@ -1,4 +1,4 @@
-﻿// var seats = ['', '', '', ''];
+// var seats = ['', '', '', ''];
 // var buttons;
 // var shmearHub;
 var gameId = 0;
@@ -20,7 +20,7 @@ $().ready(function () {
     // wagers = [$('#wager2link'), $('#wager3link'), $('#wager4link'), $('#wager5link')];
     console.log("Connection Created");
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/shmearHub")
+        .withUrl("http://localhost:5199/shmearHub")
         // .WithKeepAliveInterval(30)
         // .WithConnectionTimeout(600)
         .build();

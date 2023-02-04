@@ -30,8 +30,8 @@ namespace Shmear2.Business.Services
         {
             return new[]
             {
-                0,
-                2
+                1,
+                3
             };
         }
 
@@ -39,8 +39,8 @@ namespace Shmear2.Business.Services
         {
             return new[]
             {
-                1,
-                3
+                2,
+                4
             };
         }
 
@@ -211,7 +211,7 @@ namespace Shmear2.Business.Services
                 var trickCards = await GetTrickCards(trick.Id);
                 if (trickCards.Any())
                 {
-                    var cardLed = (await GetCardAsync(trickCards.First().CardId));
+                    var cardLed = (await GetCardAsync(trickCards.OrderBy(_ => _.Sequence).First().CardId));
                     var suitLedId = cardLed.SuitId;
                     if (card.SuitId == trumpSuitId)
                         return true;
@@ -386,9 +386,13 @@ namespace Shmear2.Business.Services
             var dealerPlayerId = board.DealerPlayerId;
             var gamePlayers = (await GetGamePlayers(gameId)).OrderBy(_ => _.SeatNumber).ToList();
             var wagerPlayers = gamePlayers.Count(_ => _.Wager != null);
-            var nextGamePlayerIndex = ((gamePlayers.FindIndex(_ => _.PlayerId == dealerPlayerId) + wagerPlayers + 1) % 4);
-            var nextPlayer = gamePlayers[nextGamePlayerIndex];
-            return nextPlayer;
+            if (wagerPlayers < 4)
+            {
+                var nextGamePlayerIndex = ((gamePlayers.FindIndex(_ => _.PlayerId == dealerPlayerId) + wagerPlayers + 1) % 4);
+                var nextPlayer = gamePlayers[nextGamePlayerIndex];
+                return nextPlayer;
+            }
+            return null;
         }
 
         public async Task<int> GetHighestWager(int gameId)
