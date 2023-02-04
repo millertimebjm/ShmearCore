@@ -106,6 +106,7 @@ $().ready(function () {
 
         $('#seatDiv').hide();
         $('#gameDiv').show();
+
     });
     connection.on("PlayerWagerUpdate", (seatNumber, currentWager) => {
         console.log("PlayerWagerUpdate called from Server.  SeatNumber: " + seatNumber + " | MaxWager: " + currentWager);
@@ -119,9 +120,11 @@ $().ready(function () {
                 }
             });
             $("#wagerDiv").show();
-        } else {
-            // point at wager person's turn
         }
+        $(".arrowImage").hide();
+        var arrowObject = getArrowObjectBySeatNumber(seatNumber);
+        console.log("getArrowObjectBySeatNumber called - ArrowObject: " + arrowObject);
+        $(arrowObject).show();
     });
     $('.wager').click(function (e) {
         var wager = $(e.target).closest(".wager").data("wager");
@@ -131,6 +134,10 @@ $().ready(function () {
     });
     connection.on("PlayerTurnUpdate", (playerSeatTurn) => {
         console.log("PlayerTurnUpdate being called from Server.  PlayerSeatTurn: " + playerSeatTurn);
+        $(".arrowImage").hide();
+        var arrowObject = getArrowObjectBySeatNumber(playerSeatTurn);
+        console.log("getArrowObjectBySeatNumber called - ArrowObject: " + arrowObject);
+        $(arrowObject).show();
     });
     function isMySeatNumber(seatNumber) {
         console.log("isMySeatNumber - username: " + username + " | seatNumber: " + seatNumber + " | seatUsername: " + $(".seat[data-seatnumber='" + seatNumber + "']").find(".seatUsername").text());
@@ -163,6 +170,26 @@ $().ready(function () {
             return $("#playerCard");
         }
     }
+    function getArrowObjectBySeatNumber(seatNumber) {
+        console.log("getArrowObjectBySeatNumber called.");
+        var mySeatNumber = -1;
+        $.each($(".seat"), function (index, value) {
+            if ($(value).find(".seatUsername").text() === username) {
+                mySeatNumber = $(value).data("seatnumber");
+            }
+        });
+        console.log("mySeatNumber: " + mySeatNumber);
+        if (mySeatNumber - seatNumber == -1 || mySeatNumber - seatNumber == 3) {
+            return $("#leftArrow");
+        } else if (mySeatNumber - seatNumber == 2 || mySeatNumber - seatNumber == -2) {
+            return $("#oppositeArrow");
+        } else if (mySeatNumber - seatNumber == 1 || mySeatNumber - seatNumber == -3) {
+            return $("#rightArrow");
+        } else {
+            return $("#selfArrow");
+        }
+    }
+    
     function resetIfFirstCardInNewTrick() {
         if (!$("#leftPlayerCard").attr("src").includes("Empty.png")
             && !$("#oppositePlayerCard").attr("src").includes("Empty.png")
