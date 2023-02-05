@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/df4719c4-493b-4d11-b399-a891ec0c47b8/AppServices/subscriptions/df4719c4-493b-4d11-b399-a891ec0c47b8/resourceGroups/Shmear/providers/Microsoft.Web/sites/ShmearApi",
+    "appService.deploySubpath": "Shmear2.Mvc/"
+}
