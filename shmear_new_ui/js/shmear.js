@@ -20,7 +20,7 @@ $().ready(function () {
     // wagers = [$('#wager2link'), $('#wager3link'), $('#wager4link'), $('#wager5link')];
     console.log("Connection Created");
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("http://miller.silverminenordic.com:8443/shmearHub")
+        .withUrl("https://miller.silverminenordic.com:8443/shmearHub")
         // .WithKeepAliveInterval(30)
         // .WithConnectionTimeout(600)
         .build();
