@@ -12,33 +12,21 @@ namespace Shmear2.Business.Services
     public class PlayerComputerService : IPlayerComputerService
     {
         public readonly CardDbContext _cardDb;
-        public readonly IGameService _gameService;
-        public readonly IBoardService _boardService;
-        public readonly IHandService _handService;
-        public readonly ITrickService _trickService;
-        public readonly ICardService _cardService;
+        public readonly IShmearService _shmearService;
         public PlayerComputerService(
             CardDbContext cardDb,
-            IGameService gameService,
-            IBoardService boardService,
-            IHandService handService,
-            ITrickService trickService,
-            ICardService cardService)
+            IShmearService shmearService)
         {
             _cardDb = cardDb;
-            _gameService = gameService;
-            _boardService = boardService;
-            _handService = handService;
-            _trickService = trickService;
-            _cardService = cardService;
+            _shmearService = shmearService;
         }
 
         public async Task<KeyValuePair<SuitEnum, double>> Wager(
             int gameId,
             int playerId)
         {
-            var game = await _gameService.GetGame(gameId);
-            var gamePlayer = await _gameService.GetGamePlayer(gameId, playerId);
+            var game = await _shmearService.GetGame(gameId);
+            var gamePlayer = await _shmearService.GetGamePlayer(gameId, playerId);
             SetAggressiveness(gamePlayer.SeatNumber, game.Team1Points, game.Team2Points);
             return await CalculateBestHandValuePerSuit(gameId, playerId);
         }
@@ -61,7 +49,7 @@ namespace Shmear2.Business.Services
         {
             var valueWorthTrump = LoadValueWorthTrumpDictionary();
             var valueWorthOffSuit = LoadValueWorthOffSuitDictionary();
-            var handCards = await _handService.GetHand(gameId, playerId);
+            var handCards = await _shmearService.GetHand(gameId, playerId);
             var dictionary = new Dictionary<SuitEnum, double>();
             foreach (var suit in (SuitEnum[])Enum.GetValues(typeof(SuitEnum)))
             {
@@ -82,10 +70,10 @@ namespace Shmear2.Business.Services
 
         public async Task<Card> PlayCard(int gameId, int playerId)
         {
-            var board = await _boardService.GetBoardByGameId(gameId);
-            var handCards = await _handService.GetHand(gameId, playerId);
-            var tricks = await _trickService.GetTricks(gameId);
-            var trickCards = await _trickService.GetAllTrickCards(gameId);
+            var board = await _shmearService.GetBoardByGameId(gameId);
+            var handCards = await _shmearService.GetHand(gameId, playerId);
+            var tricks = await _shmearService.GetTricks(gameId);
+            var trickCards = await _shmearService.GetAllTrickCards(gameId);
 
 
             // If first trick, determine best card to play as first card
@@ -100,7 +88,7 @@ namespace Shmear2.Business.Services
             var validCards = new List<Card>();
             foreach (var handCard in handCards)
             {
-                if (await _gameService.ValidCardPlay(gameId, board.Id, playerId, handCard.CardId))
+                if (await _shmearService.ValidCardPlay(gameId, board.Id, playerId, handCard.CardId))
                     validCards.Add(handCard.Card);
             }
             if (validCards.Count == 1)
@@ -115,7 +103,7 @@ namespace Shmear2.Business.Services
                 if (!jackOrJoker.Any())
                 {
                     // check to see if you can take the jack or joker
-                    var jackTrumpCard = await _cardService.GetCard((int)board.TrumpSuitId, ValueEnum.Jack);
+                    var jackTrumpCard = await _shmearService.GetCard((int)board.TrumpSuitId, ValueEnum.Jack);
                     var beatJackOrJoker = handCards.Where(_ => _.Card.Value.Sequence > jackTrumpCard.Value.Sequence);
                     if (beatJackOrJoker.Any())
                         return beatJackOrJoker.OrderByDescending(_ => _.Card.Value.Sequence).First().Card;
@@ -132,7 +120,7 @@ namespace Shmear2.Business.Services
             {
                 // if not your lead
                 // if your team isn't winning and you can't win, throw lowest card (10 is rated as lowest value option)
-                var winningCard = _boardService.DetermineWinningCard(gameId, trickCards);
+                var winningCard = _shmearService.DetermineWinningCard(gameId, trickCards);
 
                 // if your team is winning
 
