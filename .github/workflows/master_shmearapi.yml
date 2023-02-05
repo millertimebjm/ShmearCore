@@ -26,13 +26,13 @@ jobs:
         run: dotnet build --configuration Release Shmear2.Mvc/Shmear2.Mvc.csproj
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}} Shmear2.Mvc/Shmear2.Mvc.csproj
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/Shmear2.Mvc Shmear2.Mvc/Shmear2.Mvc.csproj
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/Shmear2.Mvc
+          path: ${{env.DOTNET_ROOT}}
 
   deploy:
     runs-on: windows-latest
