@@ -43,6 +43,7 @@ public interface IShmearService
     Task<bool> AddCard(int gameId, int playerId, int cardId);
     Task<IEnumerable<HandCard>> GetHand(int gameId, int playerId);
     Task<IEnumerable<Trick>> GetTricks(int gameId);
+    Task<Trick?> GetIncompleteTrick(int gameId);
     Task<Trick> GetTrick(int trickId);
     Task<Trick> CreateTrick(int gameId);
     Task<Trick> EndTrick(int trickId);
