@@ -23,9 +23,10 @@ public interface IShmearService
     Task<Board> SaveBoard(Board board);
     Task<Board> GetBoard(int boardId);
     Task<bool> DealCards(int gameId);
-    Task<GamePlayer> GetNextWagerPlayer(int gameId);
-    Task<GamePlayer> GetNextCardPlayer(int gameId, int trickId);
-    Task SetWager(int gameId, int playerId, int wager);
+    Task<GamePlayer> GetNextWagerGamePlayer(int gameId);
+    Task<GamePlayer> GetNextCardGamePlayer(int gameId, int trickId);
+    Task<GamePlayer> GetNextCardGamePlayer(int gameId);
+    Task<bool> SetWager(int gameId, int playerId, int wager);
     Task<int> GetHighestWager(int gameId);
     Task<RoundResult> EndRound(int gameId);
     Task<RoundResult> DeterminePointsByTeam(int gameId);

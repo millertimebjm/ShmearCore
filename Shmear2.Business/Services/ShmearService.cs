@@ -380,7 +380,7 @@ namespace Shmear2.Business.Services
             return cards;
         }
 
-        public async Task<GamePlayer> GetNextWagerPlayer(int gameId)
+        public async Task<GamePlayer> GetNextWagerGamePlayer(int gameId)
         {
             var board = await GetBoardByGameId(gameId);
             var dealerPlayerId = board.DealerPlayerId;
@@ -403,7 +403,16 @@ namespace Shmear2.Business.Services
             return maxWager;
         }
 
-        public async Task<GamePlayer> GetNextCardPlayer(int gameId, int trickId)
+        public async Task<GamePlayer> GetNextCardGamePlayer(int gameId)
+        {
+            var trick = _cardDb
+                .Trick
+                .Where(_ => _.GameId == gameId && _.CompletedDate == null)
+                .Single();
+            return await GetNextCardGamePlayer(gameId, trick.Id);
+        }
+
+        public async Task<GamePlayer> GetNextCardGamePlayer(int gameId, int trickId)
         {
             var gamePlayers = (await GetGamePlayers(gameId)).OrderBy(_ => _.SeatNumber).ToList();
             var completedTricks = (await GetTricks(gameId)).Where(_ => _.CompletedDate != null);
@@ -423,13 +432,19 @@ namespace Shmear2.Business.Services
             return nextPlayer;
         }
 
-        public async Task SetWager(int gameId, int playerId, int wager)
+        public async Task<bool> SetWager(int gameId, int playerId, int wager)
         {
+            var nextWagerGamePlayer = await GetNextWagerGamePlayer(gameId);
             var gamePlayer = await GetGamePlayer(gameId, playerId);
-            gamePlayer.Wager = wager;
-            await SaveGamePlayer(gamePlayer);
+            if (gamePlayer.Id == nextWagerGamePlayer.Id)
+            {
+                gamePlayer.Wager = wager;
+                await SaveGamePlayer(gamePlayer);
 
-            await CheckBoardWagers(gameId);
+                await CheckBoardWagers(gameId);
+                return true;
+            }
+            return false;
         }
 
         private async Task CheckBoardWagers(int gameId)
@@ -451,6 +466,7 @@ namespace Shmear2.Business.Services
                     board.Team2Wager = maxWagerPlayer.Wager;
 
                 await SaveBoard(board);
+                await CreateTrick(gameId);
             }
         }
 
@@ -915,6 +931,11 @@ namespace Shmear2.Business.Services
             return await _cardDb.Trick.SingleAsync(_ => _.Id == trickId);
         }
 
+        public async Task<Trick?> GetIncompleteTrick(int gameId)
+        {
+            return await _cardDb.Trick.SingleOrDefaultAsync(_ => _.CompletedDate == null);
+        }
+
         public async Task<Trick> CreateTrick(int gameId)
         {
             var trick = new Trick()
@@ -939,6 +960,37 @@ namespace Shmear2.Business.Services
 
             return await GetTrick(trick.Id);
         }
+
+        // public async Task<bool> PlayCard(int gameId, int playerId, int cardId)
+        // {
+        //     if (!ValidCardPlay(gameId, playerId, cardId))
+        //     {
+        //         return false;
+        //     }
+        //     var incompleteTrick = await GetIncompleteTrick(gameId);
+        //     var highestSequence = incompleteTrick?.Sequence ?? 0;
+        //     var trickCard = new TrickCard()
+        //     {
+        //         CardId = cardId,
+        //         PlayerId = playerId,
+        //         Sequence = highestSequence + 1,
+        //         TrickId = incompleteTrick.Id
+        //     };
+        //     await _cardDb.TrickCard.AddAsync(trickCard);
+        //     await _cardDb.SaveChangesAsync();
+
+        //     HandCard handCard = _cardDb
+        //         .HandCard
+        //         .Single(_ => _.GameId == gameId && _.PlayerId == playerId && _.CardId == cardId);
+        //     _cardDb.HandCard.Remove(handCard);
+
+        //     var gameId = trick.GameId;
+        //     var board = await _cardDb.Board.SingleAsync(_ => _.GameId == gameId);
+        //     if (board.TrumpSuitId == null || board.TrumpSuitId == 0)
+        //         board.TrumpSuitId = _cardDb.Card.Single(_ => _.Id == cardId).SuitId;
+
+        //     _cardDb.SaveChanges();
+        // }
 
         public async Task<Trick> PlayCard(int trickId, int playerId, int cardId)
         {
