@@ -236,8 +236,9 @@ namespace Shmear2.Mvc.Hubs
             }
         }
 
-        public async Task PlayCard(int gameId, int cardId)
+        public async Task PlayCard(int gameId, string cardIdString)
         {
+            var cardId = int.Parse(cardIdString);
             // var card = await _shmearService.GetCardAsync(cardId);
             // var gamePlayers = (await _shmearService.GetGamePlayers(gameId)).ToArray();
             // var player = await _playerService.GetPlayer(Context.ConnectionId);

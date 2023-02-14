@@ -87,6 +87,17 @@ namespace Shmear2.Business.Services
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<GamePlayer>> GetHumanGamePlayers(int gameId)
+        {
+            return await _cardDb
+                .GamePlayer
+                .Include(p => p.Player)
+                .Where(_ => _.GameId == gameId
+                    && _.Player.ConnectionId != null
+                    && _.Player.ConnectionId != "")
+                .ToListAsync();
+        }
+
         public async Task<int> AddPlayer(int gameId, int playerId, int seatNumber)
         {
             var game = await _cardDb.Game.SingleAsync(_ => _.Id == gameId);
@@ -133,6 +144,13 @@ namespace Shmear2.Business.Services
                 .GamePlayer
                 .Include(_ => _.Player)
                 .SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
+        }
+
+        public async Task<GamePlayer> GetGamePlayer(int gamePlayerId)
+        {
+            return await _cardDb
+                .GamePlayer
+                .SingleAsync(_ => _.Id == gamePlayerId);
         }
 
         public async Task<GamePlayer> GetGamePlayer(int gameId, string connectionId)
@@ -184,7 +202,9 @@ namespace Shmear2.Business.Services
 
         public async Task<bool> ValidCardPlay(int gameId, int boardId, int playerId, int cardId)
         {
-            var gamePlayer = await _cardDb.GamePlayer.Include(p => p.Player).SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
+            var gamePlayer = await _cardDb.GamePlayer
+                .Include(p => p.Player)
+                .SingleAsync(_ => _.GameId == gameId && _.PlayerId == playerId);
             var player = gamePlayer.Player;
 
             var cards = await GetHand(gameId, player.Id);
@@ -211,7 +231,8 @@ namespace Shmear2.Business.Services
                 var trickCards = await GetTrickCards(trick.Id);
                 if (trickCards.Any())
                 {
-                    var cardLed = (await GetCardAsync(trickCards.OrderBy(_ => _.Sequence).First().CardId));
+                    var cardLed = (await GetCardAsync(trickCards.OrderBy(_ => _.Sequence)
+                        .First().CardId));
                     var suitLedId = cardLed.SuitId;
                     if (card.SuitId == trumpSuitId)
                         return true;
@@ -414,12 +435,17 @@ namespace Shmear2.Business.Services
 
         public async Task<GamePlayer> GetNextCardGamePlayer(int gameId, int trickId)
         {
-            var gamePlayers = (await GetGamePlayers(gameId)).OrderBy(_ => _.SeatNumber).ToList();
-            var completedTricks = (await GetTricks(gameId)).Where(_ => _.CompletedDate != null);
+            var gamePlayers = (await GetGamePlayers(gameId))
+                .OrderBy(_ => _.SeatNumber)
+                .ToList();
+            var completedTricks = (await GetTricks(gameId))
+                .Where(_ => _.CompletedDate != null);
             int trickStartingPlayer;
             if (completedTricks.Any())
             {
-                var latestCompletedTrick = completedTricks.OrderByDescending(_ => _.CompletedDate).First();
+                var latestCompletedTrick = completedTricks
+                    .OrderByDescending(_ => _.CompletedDate)
+                    .First();
                 trickStartingPlayer = (int)latestCompletedTrick.WinningPlayerId;
             }
             else

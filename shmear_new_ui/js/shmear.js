@@ -1,12 +1,5 @@
-// var seats = ['', '', '', ''];
-// var buttons;
-// var shmearHub;
+// python3 -m http.server 8079
 var gameId = 0;
-
-// var gameStarted = false;
-// var highestWager = 0;
-// var i = 0;
-// var handCardIds = ['', '', '', '', '', ''];
 var username = '';
 
 $().ready(function () {
@@ -16,11 +9,10 @@ $().ready(function () {
         window.location = "index.html";
     }
 
-    // buttons = [$('#seat1'), $('#seat2'), $('#seat3'), $('#seat4')];
-    // wagers = [$('#wager2link'), $('#wager3link'), $('#wager4link'), $('#wager5link')];
     console.log("Connection Created");
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("https://miller.silverminenordic.com:8443/shmearHub")
+        // .withUrl("http://localhost:8080/shmearHub")
         // .WithKeepAliveInterval(30)
         // .WithConnectionTimeout(600)
         .build();
@@ -40,13 +32,22 @@ $().ready(function () {
         var seats = $('.seat');
         $.each(seats, function (index, value) {
             var seatUsername = seatArray[$(value).data('seatnumber') - 1];
+            console.log("find seatusername=" + $(value).find(".seatUsername").text());
             if (seatUsername === "") {
                 seatUsername = "Open";
+                $(value).parent().find(".addComputerSeat").show();
+                $(value).parent().find(".dropComputerSeat").hide();
+            }
+            else if (seatUsername.startsWith("Comp")) {
+                $(value).parent().find(".addComputerSeat").hide();
+                $(value).parent().find(".dropComputerSeat").show();
+            } else {
+                $(value).parent().find(".addComputerSeat").hide();
+                $(value).parent().find(".dropComputerSeat").hide();
             }
             $(value).find(".seatUsername").text(seatUsername);
         });
         gameId = openGameId;
-        // seatButtonUpdate();
     });
 
     document.addEventListener("dragstart", function (event) {
@@ -75,7 +76,7 @@ $().ready(function () {
 
     $(".card").on("click", function (e) {
         console.log(e.target);
-        var cardId = $(e.target).closest(".card").data("cardid");
+        var cardId = parseInt($(e.target).closest(".card").data("cardid"));
         console.log("PlayCard being called from Client - gameId: " + gameId + " | cardId: " + cardId);
         var promise = connection.invoke("PlayCard", gameId, cardId);
     });
@@ -89,14 +90,22 @@ $().ready(function () {
                 $(value).attr("src", "/images/Cards/Empty.png");
             }
         });
-        //var arrowObject = getArrowObjectBySeatNumber(seatNumber);
+    });
+    $(".seat").hover(function () {
+        $(this).css('cursor', 'pointer');
     });
     $(".seat").on("click", function (e) {
         console.log(e.target);
         var seatNumber = $(e.target).closest(".seat").data("seatnumber");
         console.log("SetSeatStatus being called from Client.  GameId: " + gameId + " | seatNumber: " + seatNumber);
         var promise = connection.invoke("SetSeatStatus", gameId, seatNumber);
-    })
+    });
+    $(".addComputerSeat").on("click", function (e) {
+        console.log(e.target);
+        var seatNumber = $(e.target).data("computerseatid");
+        console.log("SetComputerSeatStatus being called from Client.  GameId: " + gameId + " | computerSeatNumber: " + seatNumber);
+        var promise = connection.invoke("SetComputerSeatStatus", gameId, seatNumber);
+    });
     connection.on("CardUpdate", (cards) => {
         console.log("CardUpdate called from Server");
         var cardDivs = $(".card");
@@ -107,7 +116,6 @@ $().ready(function () {
 
         $('#seatDiv').hide();
         $('#gameDiv').show();
-
     });
     connection.on("PlayerWagerUpdate", (seatNumber, currentWager) => {
         console.log("PlayerWagerUpdate called from Server.  SeatNumber: " + seatNumber + " | MaxWager: " + currentWager);
@@ -250,114 +258,4 @@ $().ready(function () {
         connection.invoke("SendChat", gameId, message);
         $('#playerMessage').val('');
     }
-
-    // connection.on("CardUpdate", (playerIndex, cards, cardCountBySeat) => {
-    //     console.log("CardUpdate called from Server");
-    //     for (i = 0; i < 6; i++) {
-    //         //$('#player'.concat(playerIndex + 1).concat('card').concat(i + 1).concat(' a')).prop("onclick", null);
-    //         //$('#player'.concat(playerIndex + 1).concat('card').concat(i + 1)).html('');
-    //         $('#card'.concat(i + 1).concat(' a')).prop("onclick", null);
-    //         $('#card'.concat(i + 1)).html('');
-    //         handCardIds[i] = 0;
-    //     }
-    //     for (i = 0; i < cards.length; i++) {
-    //         handCardIds[i] = cards[i][0];
-    //         var card = cards[i];
-    //         var cardId = card[0];
-    //         var cardString = card[1];
-    //         //var playerCardId = 'player'.concat(playerIndex + 1).concat('card').concat(i + 1);
-    //         var playerCardId = 'card'.concat(i + 1);
-    //         var playerCardAnchorId = playerCardId.concat('anchor');
-    //         $('#'.concat(playerCardId)).html('<a id="' + playerCardAnchorId + '" href="#">'.concat("<img src='/images/Cards/" + cardString + ".png' style='max-width: 100%; max-height: 100%'>").concat('</a>&nbsp;'));
-    //         //width='100' height='144'
-    //         console.log(playerCardAnchorId.concat(' ').concat(cardId));
-    //         $('#'.concat(playerCardAnchorId)).click(function () {
-    //             console.log($(this).attr('id').charAt(11));
-    //             //console.log(handCardIds[$(this).attr('id').charAt(11)]);
-    //             //player1card1
-    //             //card1
-    //             console.log(handCardIds[$(this).attr('id').charAt(4)]);
-    //             console.log("PlayCard is being called on from the Client");
-    //             //var cardId = parseInt(handCardIds[$(this).attr('id').charAt(11) - 1]);
-    //             var cardId = parseInt(handCardIds[$(this).attr('id').charAt(4) - 1]);
-    //             connection.invoke("PlayCard", gameId, cardId);
-    //         });
-    //     };
-    //     for (i = 0; i < 4; i++) {
-    //         if (!(i === playerIndex)) {
-    //             $('#player'.concat(i + 1).concat('card').concat(1)).text(cardCountBySeat[i]);
-    //         }
-    //     }
-    //     $('#seatDiv').hide();
-    //     $('#cardDiv').show();
-    // })
-    // connection.on("HideWager", () => {
-    //     console.log("HideWager being called from Server");
-    //     $('#wager0').hide();
-    //     for (i = 0; i < 4; i++) {
-    //         wagers[i].hide();
-    //     }
-    // });
-    // connection.on("PlayerTurnUpdate", (playerSeatTurn) => {
-    //     console.log("PlayerTurnUpdate being called from Server");
-    //     for (i = 1; i < 5; i++) {
-    //         if (playerSeatTurn === i) {
-    //             $('#player'.concat(i).concat('arrow')).show();
-    //         } else {
-    //             $('#player'.concat(i).concat('arrow')).hide();
-    //         }
-    //     }
-    // });
-    // connection.on("WagerUpdate", (highestWagerInput) => {
-    //     console.log("WagerUpdate being called from Server");
-    //     $('#wager0').show();
-    //     highestWager = highestWagerInput;
-    //     for (i = 0; i < 4; i++) {
-    //         if ((i + 2) > highestWager) {
-    //             wagers[i].show();
-    //         } else {
-    //             wagers[i].hide();
-    //         }
-    //     }
-    // });
-    // $('#wager0link').click(function () {
-    //     var wager = parseInt($('#wager0').text());
-    //     console.log("SetWager being called from Client.  GameId: " + gameId + " | WagerId: " + wager);
-    //     connection.invoke("SetWager", gameId, wager);
-    // });
-    // $('#ready').click(function () {
-    //     console.log("TogglePlayerReadyStatus being called from Client");
-    //     connection.invoke("TogglePlayerReadyStatus", gameId);
-    // });
-
-    // $('#leave').click(function () {
-    //     console.log("Calling the LeaveSeat function from Client");
-    //     connection.invoke("LeaveSeat", gameId);
-    //     $('#ready').hide();
-    //     $('#cardDiv').hide();
-    //     $('#seatDiv').show();
-    // });
-    // for (i = 0; i < 4; i++) {
-    //     wagers[i].click(function () {
-    //         var wager = parseInt($(this).text());
-    //         console.log("SetWager being called from Client.  GameId: " + gameId + " | WagerId: " + wager);
-    //         connection.invoke("SetWager", gameId, wager);
-    //     });
-    // }
-    // $('#sendMessageButton').click(sendMessageButtonFunction);
-    // $("#playerMessage").bind("keypress", checkPlayerMessageEnterKey);
-
-    // function checkPlayerMessageEnterKey(e) {
-    //     if (e.keyCode === 13) {
-    //         e.preventDefault(); // Ensure it is only this code that runs
-    //         sendMessageButtonFunction();
-    //     }
-    // }
-
-    // function sendMessageButtonFunction() {
-    //     var message = $('#playerMessage').val();
-    //     console.log("SendChat being called from Client");
-    //     connection.invoke("SendChat", gameId, message);
-    //     $('#playerMessage').val('');
-    // }
 });

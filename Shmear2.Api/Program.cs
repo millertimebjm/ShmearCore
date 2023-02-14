@@ -12,6 +12,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<CardDbContext>();
 builder.Services.AddScoped<IShmearService, ShmearService>();
 builder.Services.AddScoped<IPlayerService, PlayerService>();
+builder.Services.AddScoped<IPlayerComputerService, PlayerComputerService>();
 builder.Services.AddSingleton<IConfigurationService>(_ =>
     new ConfigurationService(inMemoryDatabaseConnectionString: "InMemoryDatabaseConnectionString"));
 builder.Services.AddSignalR();
