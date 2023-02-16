@@ -16,6 +16,8 @@ namespace Shmear2.Business.Database.Models
         public int Id { get; set; }
         public int Team1Points { get; set; }
         public int Team2Points { get; set; }
+        public int Team1Matches { get; set; }
+        public int Team2Matches { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? StartedDate { get; set; }
 

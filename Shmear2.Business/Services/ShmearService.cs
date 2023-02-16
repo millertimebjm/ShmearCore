@@ -599,16 +599,16 @@ namespace Shmear2.Business.Services
 
             var roundResult = new RoundResult();
 
-            roundResult.Team1Points = pointList.Where(_ => _.Team == 1);
-            roundResult.Team1RoundChange = roundResult.Team1Points.Count();
+            roundResult.Team1PointTypes = pointList.Where(_ => _.Team == 1);
+            roundResult.Team1RoundChange = roundResult.Team1PointTypes.Count();
             if ((board.Team1Wager ?? 0) > 0 && board.Team1Wager > roundResult.Team1RoundChange)
             {
                 roundResult.Team1RoundChange = -(int)board.Team1Wager;
                 roundResult.Bust = true;
             }
 
-            roundResult.Team2Points = pointList.Where(_ => _.Team == 2);
-            roundResult.Team2RoundChange = roundResult.Team2Points.Count();
+            roundResult.Team2PointTypes = pointList.Where(_ => _.Team == 2);
+            roundResult.Team2RoundChange = roundResult.Team2PointTypes.Count();
             if ((board.Team2Wager ?? 0) > 0 && board.Team2Wager > roundResult.Team2RoundChange)
             {
                 roundResult.Team2RoundChange = -(int)board.Team2Wager;
@@ -624,6 +624,26 @@ namespace Shmear2.Business.Services
             roundResult.TeamWagerValue = Math.Max(board.Team1Wager ?? 0, board.Team2Wager ?? 0);
 
             return roundResult;
+        }
+
+        public async Task<MatchResult> EndMatch(int gameId, RoundResult roundResult)
+        {
+            var game = _cardDb.Game.Single(_ => _.Id == gameId);
+            var matchResult = new MatchResult();
+            if (roundResult.Team1Points >= 11 && roundResult.Team2Points >= 11)
+            {
+                if (roundResult.TeamWager == 1) matchResult.TeamMatchWinner = 1;
+                else matchResult.TeamMatchWinner = 2;
+            }
+            else if (roundResult.Team1Points >= 11) matchResult.TeamMatchWinner = 1;
+            else if (roundResult.Team2Points >= 11) matchResult.TeamMatchWinner = 2;
+
+            if (matchResult.TeamMatchWinner == 1) game.Team1Matches++;
+            if (matchResult.TeamMatchWinner == 2) game.Team2Matches++;
+            matchResult.Team1Matches = game.Team1Matches;
+            matchResult.Team2Matches = game.Team2Matches;
+
+            return matchResult;
         }
 
         private static Point GetJackPoint(

@@ -8,11 +8,13 @@ namespace Shmear2.Business.Models
     {
         public int Team1RoundChange { get; set; }
         public int Team2RoundChange { get; set; }
-        public IEnumerable<Point> Team1Points { get; set; }
-        public IEnumerable<Point> Team2Points { get; set; }
+        public IEnumerable<Point> Team1PointTypes { get; set; }
+        public IEnumerable<Point> Team2PointTypes { get; set; }
         public bool Bust { get; set; }
         public int TeamWager { get; set; }
         public int TeamWagerValue { get; set; }
+        public int Team1Points { get; set; }
+        public int Team2Points { get; set; }
 
         public RoundResult()
         {

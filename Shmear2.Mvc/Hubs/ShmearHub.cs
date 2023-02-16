@@ -337,15 +337,30 @@ namespace Shmear2.Mvc.Hubs
             game = await _shmearService.SaveRoundChange(game.Id, game.Team1Points, game.Team2Points);
 
             string s1 = roundResult.Team1RoundChange == 1 ? "" : "s";
-            await SendLog(gameId, string.Format($"<p>Team 1 ({team1Names}) {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
+            await SendLog(gameId, string.Format($"<p>Team 1 ({team1Names}) {WagerResult(roundResult, 1)}gained {roundResult.Team1RoundChange} point{s1} ({string.Join(", ", roundResult.Team1PointTypes.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team1Points}</p>"));
 
             string s2 = roundResult.Team2RoundChange == 1 ? "" : "s";
-            await SendLog(gameId, string.Format($"<p>Team 2 ({team2Names}) {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2Points.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
+            await SendLog(gameId, string.Format($"<p>Team 2 ({team2Names}) {WagerResult(roundResult, 2)}gained {roundResult.Team2RoundChange} point{s2} ({string.Join(", ", roundResult.Team2PointTypes.Select(_ => _.PointType.ToString() + _.OtherData))}), for a total of {game.Team2Points}</p>"));
 
             _shmearService.ClearTricks(gameId);
+
+            if (game.Team1Points >= 11 || game.Team2Points >= 11)
+            {
+                var matchResult = await _shmearService.EndMatch(roundResult);
+            }
+
             await _shmearService.StartRound(gameId);
             await _shmearService.DealCards(gameId);
             await SendCards(gameId);
+        }
+
+        private Task EndMatch(Game game)
+        {
+            if (game.Team1Points >= 11 && game.Team2Points >= 11)
+            {
+                var wagerGamePlayer = game.GamePlayer.Single(_ => _.Wager == game.GamePlayer.Max(gp => gp.Wager));
+                _shmearService.wagerGamePlayer.SeatNumber
+            }
         }
 
         private string WagerResult(RoundResult roundResult, int teamId)
