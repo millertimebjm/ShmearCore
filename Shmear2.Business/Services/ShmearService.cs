@@ -643,6 +643,10 @@ namespace Shmear2.Business.Services
             matchResult.Team1Matches = game.Team1Matches;
             matchResult.Team2Matches = game.Team2Matches;
 
+            game.Team1Points = 0;
+            game.Team2Points = 0;
+            await _cardDb.SaveChangesAsync();
+
             return matchResult;
         }
 

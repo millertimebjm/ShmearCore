@@ -150,8 +150,8 @@ namespace Shmear2.Api.Hubs
                 var gamePlayerInSeat = gamePlayers.SingleOrDefault(_ => _.SeatNumber == seatNumber);
                 if (gamePlayerInSeat != null)
                 {
-                    if (gamePlayerInSeat.Player.Id == player.Id)
-                        await _shmearService.RemovePlayer(gameId, player.Id);
+                    if (gamePlayerInSeat.Player.Id == player.Id || gamePlayerInSeat.Player.Name.StartsWith("Comp"))
+                        await _shmearService.RemovePlayer(gameId, gamePlayerInSeat.Player.Id);
                     else
                         return false;
                 }
@@ -297,6 +297,12 @@ namespace Shmear2.Api.Hubs
                 {
                     await Clients.Client(humanGamePlayer.Player.ConnectionId).SendAsync("PlayerTurnUpdate", nextCardPlayer.SeatNumber);
                 }
+                if (nextCardPlayer != null && nextCardPlayer.Player.ConnectionId is null)
+                {
+                    Thread.Sleep(1000);
+                    var computerWager = await _playerComputerService.PlayCard(gameId, nextCardPlayer.Id);
+                    await PlayCardInternal(gameId, computerWager, nextCardPlayer.Id);
+                }
             }
             else
             {
@@ -304,13 +310,12 @@ namespace Shmear2.Api.Hubs
                 {
                     await Clients.Client(humanGamePlayer.Player.ConnectionId).SendAsync("PlayerWagerUpdate", nextWagerPlayer.SeatNumber, wager);
                 }
-            }
-
-            if (nextWagerPlayer != null && nextWagerPlayer.Player.ConnectionId is null)
-            {
-                Thread.Sleep(1000);
-                var computerWager = await _playerComputerService.SetWager(gameId, nextWagerPlayer.Id);
-                await SetWagerInternal(gameId, computerWager, nextWagerPlayer.Id);
+                if (nextWagerPlayer != null && nextWagerPlayer.Player.ConnectionId is null)
+                {
+                    Thread.Sleep(1000);
+                    var computerWager = await _playerComputerService.SetWager(gameId, nextWagerPlayer.Id);
+                    await SetWagerInternal(gameId, computerWager, nextWagerPlayer.Id);
+                }
             }
         }
 
@@ -439,12 +444,13 @@ namespace Shmear2.Api.Hubs
 
             _shmearService.ClearTricks(gameId);
 
+            roundResult.Team1Points = game.Team1Points;
+            roundResult.Team2Points = game.Team2Points;
             if (roundResult.Team1Points >= 11 || roundResult.Team2Points >= 11)
             {
                 var matchResult = await _shmearService.EndMatch(gameId, roundResult);
                 await SendLog(gameId, $"Team {matchResult.TeamMatchWinner} won the match.  Team 1 ({team1Names}) has {matchResult.Team1Matches}.  Team 2 ({team2Names}) has {matchResult.Team2Matches}");
             }
-
 
             await _shmearService.StartRound(gameId);
             await _shmearService.DealCards(gameId);
