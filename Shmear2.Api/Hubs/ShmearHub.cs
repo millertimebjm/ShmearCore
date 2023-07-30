@@ -143,7 +143,7 @@ namespace Shmear2.Api.Hubs
                     {
                         Id = 0,
                         IsComputer = true,
-                        Name = "Comp" + randomService.Next(1000, 9999),
+                        Name = "Comp" + randomService.Next(100, 999),
                     }
                 );
                 var gamePlayers = await _shmearService.GetGamePlayers(game.Id);
