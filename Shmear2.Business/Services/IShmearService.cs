@@ -54,4 +54,5 @@ public interface IShmearService
     Task<IEnumerable<TrickCard>> GetAllTrickCards(int gameId);
     void ClearTricks(int gameId);
     Task<IEnumerable<TrickCard>> GetTrickCards(int trickId);
+    Task<Trick> GetLatestNonEmptyTrick(int gameId);
 }

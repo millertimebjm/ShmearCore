@@ -986,6 +986,25 @@ namespace Shmear2.Business.Services
             return await _cardDb.Trick.SingleOrDefaultAsync(_ => _.CompletedDate == null);
         }
 
+        public async Task<Trick> GetLatestNonEmptyTrick(int gameId)
+        {
+            var trickQueryable = _cardDb
+                .Trick
+                .Include(_ => _.TrickCard)
+                .ThenInclude(_ => _.Card);
+
+            var trick = await trickQueryable
+                .SingleOrDefaultAsync(_ => _.CompletedDate == null && _.TrickCard.Any());
+            if (trick is not null)
+            {
+                return trick;
+            }
+            return await trickQueryable
+                .Where(_ => _.CompletedDate != null)
+                .OrderByDescending(_ => _.CompletedDate)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Trick> CreateTrick(int gameId)
         {
             var trick = new Trick()
@@ -1010,37 +1029,6 @@ namespace Shmear2.Business.Services
 
             return await GetTrick(trick.Id);
         }
-
-        // public async Task<bool> PlayCard(int gameId, int playerId, int cardId)
-        // {
-        //     if (!ValidCardPlay(gameId, playerId, cardId))
-        //     {
-        //         return false;
-        //     }
-        //     var incompleteTrick = await GetIncompleteTrick(gameId);
-        //     var highestSequence = incompleteTrick?.Sequence ?? 0;
-        //     var trickCard = new TrickCard()
-        //     {
-        //         CardId = cardId,
-        //         PlayerId = playerId,
-        //         Sequence = highestSequence + 1,
-        //         TrickId = incompleteTrick.Id
-        //     };
-        //     await _cardDb.TrickCard.AddAsync(trickCard);
-        //     await _cardDb.SaveChangesAsync();
-
-        //     HandCard handCard = _cardDb
-        //         .HandCard
-        //         .Single(_ => _.GameId == gameId && _.PlayerId == playerId && _.CardId == cardId);
-        //     _cardDb.HandCard.Remove(handCard);
-
-        //     var gameId = trick.GameId;
-        //     var board = await _cardDb.Board.SingleAsync(_ => _.GameId == gameId);
-        //     if (board.TrumpSuitId == null || board.TrumpSuitId == 0)
-        //         board.TrumpSuitId = _cardDb.Card.Single(_ => _.Id == cardId).SuitId;
-
-        //     _cardDb.SaveChanges();
-        // }
 
         public async Task<Trick> PlayCard(int trickId, int playerId, int cardId)
         {
@@ -1067,7 +1055,8 @@ namespace Shmear2.Business.Services
             if (board.TrumpSuitId == null || board.TrumpSuitId == 0)
                 board.TrumpSuitId = _cardDb.Card.Single(_ => _.Id == cardId).SuitId;
 
-            _cardDb.SaveChanges();
+            await _cardDb.SaveChangesAsync();
+
             return trick;
         }
 
