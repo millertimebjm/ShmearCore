@@ -12,7 +12,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ContainerImageName>shmear2-api</ContainerImageName>
+    <ContainerRepository>shmear2-api</ContainerRepository>
   </PropertyGroup>
 
 </Project>
