@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shmear2.Business", "Shmear2.Business\Shmear2.Business.csproj", "{D707A53D-484A-4021-8171-245D0040CB6B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shmear2.Test", "Shmear2.Test\Shmear2.Test.csproj", "{BF9CB916-B9D3-453E-8F92-E0088461110A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shmear2.Mvc", "Shmear2.Mvc\Shmear2.Mvc.csproj", "{D79A418C-BC4F-4FA0-824C-2834792ACF92}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D707A53D-484A-4021-8171-245D0040CB6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D707A53D-484A-4021-8171-245D0040CB6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D707A53D-484A-4021-8171-245D0040CB6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D707A53D-484A-4021-8171-245D0040CB6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF9CB916-B9D3-453E-8F92-E0088461110A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF9CB916-B9D3-453E-8F92-E0088461110A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF9CB916-B9D3-453E-8F92-E0088461110A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF9CB916-B9D3-453E-8F92-E0088461110A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D79A418C-BC4F-4FA0-824C-2834792ACF92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D79A418C-BC4F-4FA0-824C-2834792ACF92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D79A418C-BC4F-4FA0-824C-2834792ACF92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D79A418C-BC4F-4FA0-824C-2834792ACF92}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
