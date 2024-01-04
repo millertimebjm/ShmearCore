@@ -346,7 +346,7 @@ namespace Shmear2.Mvc.Hubs
 
             if (game.Team1Points >= 11 || game.Team2Points >= 11)
             {
-                var matchResult = await _shmearService.EndMatch(roundResult);
+                //var matchResult = await _shmearService.EndMatch(roundResult);
             }
 
             await _shmearService.StartRound(gameId);
@@ -354,12 +354,13 @@ namespace Shmear2.Mvc.Hubs
             await SendCards(gameId);
         }
 
-        private Task EndMatch(Game game)
+        private async Task EndMatch(Game game)
         {
             if (game.Team1Points >= 11 && game.Team2Points >= 11)
             {
                 var wagerGamePlayer = game.GamePlayer.Single(_ => _.Wager == game.GamePlayer.Max(gp => gp.Wager));
-                _shmearService.wagerGamePlayer.SeatNumber
+                //_shmearService.wagerGamePlayer.SeatNumber
+                
             }
         }
 

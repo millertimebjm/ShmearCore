@@ -8,6 +8,7 @@ using Shmear2.Api.Hubs;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddSwaggerGen();
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<CardDbContext>();
 builder.Services.AddScoped<IShmearService, ShmearService>();
@@ -30,6 +31,12 @@ builder.Services.AddCors(options =>
             });
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.MapGet("/", () => "Hello World!");
 

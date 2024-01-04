@@ -7,9 +7,9 @@ namespace Shmear2.Test;
 
 public class BaseShmearTest 
 {
-    internal IShmearService _shmearService;
-    internal IPlayerService _playerService;
-    internal IPlayerComputerService _playerComputerService;
+    internal IShmearService? _shmearService;
+    internal IPlayerService? _playerService;
+    internal IPlayerComputerService? _playerComputerService;
 
     protected CardDbContext GenerateCardDbContext(string connectionStringName)
     {
@@ -28,5 +28,6 @@ public class BaseShmearTest
                 Name = name,
                 KeepAlive = DateTime.Now,
             };
+	    
         }
 }
