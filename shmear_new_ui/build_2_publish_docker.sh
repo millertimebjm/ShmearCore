@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker build -t shmear2-ui .
+docker build -t shmear2-ui:1.0.0 .
 docker run -d -p 7070:80 --name shmear2-ui shmear2-ui:1.0.0
 
 rm -rf /tmp/Containers
