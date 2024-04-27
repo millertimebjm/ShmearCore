@@ -8,6 +8,7 @@ public interface IShmearService
     Task<Game> GetOpenGame();
     Task<Game> CreateGame();
     Task<Game> GetGame(int id);
+    Task<Game> GetGameDataLastTrick(int gameId);
     Task<IEnumerable<GamePlayer>> GetGamePlayers(int gameId);
     Task<IEnumerable<GamePlayer>> GetHumanGamePlayers(int gameId);
     Task<int> AddPlayer(int gameId, int playerId, int seatNumber);

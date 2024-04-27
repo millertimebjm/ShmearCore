@@ -7,15 +7,13 @@ namespace Shmear2.Test;
 
 public class BaseShmearTest 
 {
-    internal IShmearService? _shmearService;
-    internal IPlayerService? _playerService;
-    internal IPlayerComputerService? _playerComputerService;
 
     protected CardDbContext GenerateCardDbContext(string connectionStringName)
     {
         IConfigurationService configurationService = 
             new ConfigurationService(connectionStringName);
         var cardDbContext = new CardDbContext(configurationService);
+        cardDbContext.Database.EnsureCreated();
         return cardDbContext;
     }
 
@@ -30,4 +28,19 @@ public class BaseShmearTest
             };
 	    
         }
+
+    public static string GenerateRandomString(int length)
+    {
+        Random random = new Random();
+        string characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+        string randomString = "";
+
+        for (int i = 0; i < length; i++)
+        {
+            int index = random.Next(characters.Length);
+            randomString += characters[index];
+        }
+
+        return randomString;
+    }
 }

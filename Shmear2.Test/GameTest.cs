@@ -7,17 +7,15 @@ namespace Shmear2.Test
 {
     public class GameTest : BaseShmearTest
     {
-        private const string _connectionString = "GameTest";
-        private readonly CardDbContext _cardDbContext;
         public GameTest() 
         {
-            _cardDbContext = GenerateCardDbContext(_connectionString);
-            _shmearService = new ShmearService(_cardDbContext);
-            _playerService = new PlayerService(_cardDbContext);
-            _playerComputerService = new PlayerComputerService(
-                _cardDbContext,
-                _shmearService,
-                _playerService
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            IPlayerService playerService = new PlayerService(cardDbContext);
+            IPlayerComputerService playerComputerService = new PlayerComputerService(
+                cardDbContext,
+                shmearService,
+                playerService
             );
         }
 
@@ -116,69 +114,85 @@ namespace Shmear2.Test
         [Fact]
         public async Task GameTestEndRound()
         {
-            var seedDatabase = new SeedDatabase(_connectionString);
-            seedDatabase.Run();
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            shmearService.SeedValues();
+            shmearService.SeedSuits();
+            shmearService.SeedCards();
 
-            var gameId = await PlayGameUntilEndRound();
 
-            var game = await _shmearService.GetGame(gameId);
-            var roundResult = await _shmearService.EndRound(game.Id);
+            var gameId = await PlayGameUntilEndRound(
+                cardDbContext,
+                shmearService
+            );
+
+            var game = await shmearService.GetGame(gameId);
+            var roundResult = await shmearService.EndRound(game.Id);
             Assert.True(roundResult.Team1RoundChange == 5 || roundResult.Team1RoundChange == -5);
         }
 
-        private async Task<int> PlayGameUntilEndRound()
+        private async Task<int> PlayGameUntilEndRound(
+            CardDbContext cardDbContext,
+            IShmearService shmearService)
         {
-            var game = await _shmearService.CreateGame();
+            IPlayerService playerService = new PlayerService(cardDbContext);
+            IPlayerComputerService playerComputerService = new PlayerComputerService(
+                cardDbContext,
+                shmearService,
+                playerService
+            );
+
+            var game = await shmearService.CreateGame();
             var players = new List<Player>();
             for (int i = 0; i < 4; i++)
             {
                 var player = GenerateNewPlayer($"PlayerComputerTestWagerBest{i}");
-                await _playerService.SavePlayer(player);
-                await _shmearService.AddPlayer(game.Id, player.Id, i);
-                var gamePlayer = await _shmearService.GetGamePlayer(game.Id, player.Id);
+                await playerService.SavePlayer(player);
+                await shmearService.AddPlayer(game.Id, player.Id, i);
+                var gamePlayer = await shmearService.GetGamePlayer(game.Id, player.Id);
                 gamePlayer.Ready = true;
-                await _shmearService.SaveGamePlayer(gamePlayer);
+                await shmearService.SaveGamePlayer(gamePlayer);
                 players.Add(player);
             }
-            await _shmearService.StartGame(game.Id);
-            await _shmearService.StartRound(game.Id);
-            await _shmearService.DealCards(game.Id);
+            await shmearService.StartGame(game.Id);
+            await shmearService.StartRound(game.Id);
+            await shmearService.DealCards(game.Id);
 
             // Set wager 5 so that we can guess the resulting end points to be either 5 or -5
-            var gamePlayerNextWager = await _shmearService.GetNextWagerGamePlayer(game.Id);
-            await _shmearService.SetWager(game.Id, gamePlayerNextWager.PlayerId, 5);
+            var gamePlayerNextWager = await shmearService.GetNextWagerGamePlayer(game.Id);
+            await shmearService.SetWager(game.Id, gamePlayerNextWager.PlayerId, 5);
             
-            var board = await _shmearService.GetBoardByGameId(game.Id);
+            var board = await shmearService.GetBoardByGameId(game.Id);
 
             for (int cardsPlayedCount = 0; cardsPlayedCount < 6; cardsPlayedCount++)
             {
-                var trick = (await _shmearService.GetTricks(game.Id))
+                var trick = (await shmearService.GetTricks(game.Id))
                     .SingleOrDefault(_ => _.CompletedDate == null);
                 if (trick == null)
-                    trick = await _shmearService.CreateTrick(game.Id);
+                    trick = await shmearService.CreateTrick(game.Id);
                 
                 for (int playersPlayedCount = 0; playersPlayedCount < 4; playersPlayedCount++)
                 {
-                    var gamePlayerNextCard = await _shmearService.GetNextCardGamePlayer(game.Id, trick.Id);
+                    var gamePlayerNextCard = await shmearService.GetNextCardGamePlayer(game.Id, trick.Id);
                     if (cardsPlayedCount == 0 && playersPlayedCount == 0)
                     {
-                        var firstCard = await _playerComputerService.PlayCard(game.Id, gamePlayerNextCard.PlayerId);
-                        trick = await _shmearService.PlayCard(trick.Id, gamePlayerNextCard.PlayerId, firstCard);
+                        var firstCard = await playerComputerService.PlayCard(game.Id, gamePlayerNextCard.PlayerId);
+                        trick = await shmearService.PlayCard(trick.Id, gamePlayerNextCard.PlayerId, firstCard);
                         continue;
                     }
 
-                    var handCards = await _shmearService.GetHand(game.Id, gamePlayerNextCard.PlayerId);
+                    var handCards = await shmearService.GetHand(game.Id, gamePlayerNextCard.PlayerId);
                     foreach (var handCard in handCards)
                     {
-                        if (await _shmearService.ValidCardPlay(game.Id, board.Id, gamePlayerNextCard.PlayerId, handCard.CardId))
+                        if (await shmearService.ValidCardPlay(game.Id, board.Id, gamePlayerNextCard.PlayerId, handCard.CardId))
                         {
-                            trick = await _shmearService.PlayCard(trick.Id, gamePlayerNextCard.PlayerId, handCard.CardId);
+                            trick = await shmearService.PlayCard(trick.Id, gamePlayerNextCard.PlayerId, handCard.CardId);
                             break;
                         }
                     }
 
                 }
-                await _shmearService.EndTrick(trick.Id);
+                await shmearService.EndTrick(trick.Id);
             }
 
             return game.Id;

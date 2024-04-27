@@ -1,19 +1,25 @@
-using Xunit;
+using Shmear2.Business.Database;
+using Shmear2.Business.Services;
+using Shmear2.Business.Database.Models;
 
-namespace Shmear.Test
+namespace Shmear2.Test
 {
     public class CardTest : BaseShmearTest
-    {
-        public CardTest() : base()
-        {
-  
-        }
-    
-	[Fact]   
+    {    
+	    [Fact]   
         public void SeedTest()
         {      
-            var seedDatabase = new SeedDatabase();
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            shmearService.SeedValues();
+            shmearService.SeedSuits();
+            shmearService.SeedCards();
             
+            cardDbContext.Game.Add(new Game()
+            {
+               StartedDate = DateTime.Now,
+            });
+
         }
     }
 }

@@ -25,6 +25,32 @@ public class CardDbContext : DbContext
         _configurationService = configurationService;
     }
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // base.OnModelCreating(modelBuilder);
+        // modelBuilder.Entity<Game>()
+        //     .HasMany(_ => _.Trick)
+        //     .WithOne(_ => _.Game)
+        //     .HasForeignKey(_ => _.GameId);
+
+        // modelBuilder.Entity<Game>()
+        //     .HasMany(_ => _.GamePlayer)
+        //     .WithOne(_ => _.Game)
+        //     .HasForeignKey(_ => _.GameId);
+
+        // modelBuilder.Entity<Player>()
+        //     .HasOne(_ => _.GamePlayer)
+        //     .WithOne();
+
+        // modelBuilder.Entity<Card>()
+        //     .HasOne(_ => _.Suit)
+        //     .WithOne();
+
+        // modelBuilder.Entity<Card>()
+        //     .HasOne(_ => _.Value)
+        //     .WithOne();
+    }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseInMemoryDatabase(_configurationService.GetInMemoryDatabaseConnectionString());

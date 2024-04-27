@@ -78,6 +78,11 @@ namespace Shmear2.Business.Services
             return await _cardDb.Game.SingleOrDefaultAsync(_ => _.Id == id);
         }
 
+        public async Task<Game> GetGameDataLastTrick(int gameId)
+        {
+            return await _cardDb.Game.SingleOrDefaultAsync(_ => _.Id == gameId);
+        }
+
         public async Task<IEnumerable<GamePlayer>> GetGamePlayers(int gameId)
         {
             return await _cardDb

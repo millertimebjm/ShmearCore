@@ -1,38 +1,43 @@
-using Shmear2.Business.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Shmear2.Business.Database;
 using Shmear2.Business.Services;
 
 namespace Shmear2.Test;
 
-public class SeedDatabase : BaseShmearTest
-{  
-    private const string _connectionString = "SeedDatabase";
-    public SeedDatabase(string connectionString = _connectionString)
+public class SeedDatabaseTest : BaseShmearTest
+{
+    public CardDbContext SeedDatabase(string? connectionString = null) 
     {
-        var cardDbContext = GenerateCardDbContext(_connectionString);
-        _shmearService = new ShmearService(cardDbContext);
+        var cardDbContext = GenerateCardDbContext(connectionString ?? Guid.NewGuid().ToString());
+        var shmearService = new ShmearService(cardDbContext);
+        SeedValues(shmearService);
+        SeedSuits(shmearService);
+        SeedCards(shmearService);
+        return cardDbContext;
     }
 
     [Fact]
     public void Run()
     {
-        SeedValues();
-        SeedSuits();
-        SeedCards();
+        var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+        var shmearService = new ShmearService(cardDbContext);
+        SeedValues(shmearService);
+        SeedSuits(shmearService);
+        SeedCards(shmearService);
     }
 
-    private void SeedSuits()
+    private static void SeedSuits(IShmearService shmearService)
     {
-        Assert.True(_shmearService.SeedSuits());
+        Assert.True(shmearService.SeedSuits());
     }
 
-    private void SeedValues()
+    private static void SeedValues(IShmearService shmearService)
     {
-        Assert.True(_shmearService.SeedValues());
+        Assert.True(shmearService.SeedValues());
     }
 
-    private void SeedCards()
+    private static void SeedCards(IShmearService shmearService)
     {
-        Assert.True(_shmearService.SeedCards());
+        Assert.True(shmearService.SeedCards());
     }
 }
