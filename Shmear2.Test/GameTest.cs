@@ -160,6 +160,41 @@ namespace Shmear2.Test
             Assert.Equal(humanGamePlayers.Single().PlayerId, player.Id);
         }
 
+        public async Task RemovePlayer()
+        {
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            IPlayerService playerService = new PlayerService(cardDbContext);
+            var game = await shmearService.CreateGame();
+
+            var player1 = GenerateNewPlayer("RemovePlayer{0}");
+            player1 = await playerService.SavePlayer(player1);
+            await shmearService.AddPlayer(game.Id, player1.Id, 0);
+
+            var computerPlayer1 = GenerateNewComputerPlayer("RemovePlayer{1}");
+            computerPlayer1 = await playerService.SavePlayer(computerPlayer1);
+            await shmearService.AddPlayer(game.Id, computerPlayer1.Id, 1);
+
+            var player2 = GenerateNewPlayer("RemovePlayer{2}");
+            player2 = await playerService.SavePlayer(player2);
+            await shmearService.AddPlayer(game.Id, player2.Id, 2);
+
+            var computerPlayer2 = GenerateNewComputerPlayer("RemovePlayer{3}");
+            computerPlayer2 = await playerService.SavePlayer(computerPlayer2);
+            await shmearService.AddPlayer(game.Id, computerPlayer2.Id, 3);
+
+            var allGamePlayers = await shmearService.GetGamePlayers(game.Id);
+            Assert.Equal(4, allGamePlayers.Count());
+
+            await shmearService.RemovePlayer(game.Id, player2.Id);
+            await shmearService.RemovePlayer(game.Id, computerPlayer1.Id);
+
+            var allGamePlayersAfterRemove = await shmearService.GetGamePlayers(game.Id);
+            Assert.Equal(2, allGamePlayersAfterRemove.Count());
+            Assert.True(allGamePlayersAfterRemove.Single(_ => _.PlayerId == player1.Id).PlayerId == player1.Id);
+            Assert.True(allGamePlayersAfterRemove.Single(_ => _.PlayerId == computerPlayer2.Id).PlayerId == computerPlayer2.Id);
+        }
+
         private async Task<int> PlayGameUntilEndRound(
             CardDbContext cardDbContext,
             IShmearService shmearService)
