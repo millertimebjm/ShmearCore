@@ -147,15 +147,12 @@ namespace Shmear2.Test
             var player = GenerateNewPlayer("GetHumanGamePlayers{0}");
             player = await playerService.SavePlayer(player);
             await shmearService.AddPlayer(game.Id, player.Id, 0);
-            Console.WriteLine($"PlayerId: {player.Name}");
 
             var computerPlayer = GenerateNewComputerPlayer("GetHumanGamePlayers{1}");
             computerPlayer = await playerService.SavePlayer(computerPlayer);
             await shmearService.AddPlayer(game.Id, computerPlayer.Id, 1);
-            Console.WriteLine($"ComputerPlayerId: {computerPlayer.Name}");
 
             var allGamePlayers = await shmearService.GetGamePlayers(game.Id);
-            Console.WriteLine(string.Join(",", allGamePlayers.Select(_ => _.Player.Name)));
             Assert.Equal(2, allGamePlayers.Count());
 
             var humanGamePlayers = await shmearService.GetHumanGamePlayers(game.Id);
