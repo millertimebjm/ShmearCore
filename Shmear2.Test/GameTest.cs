@@ -1,118 +1,123 @@
 ﻿using Shmear2.Business.Services;
 using Shmear2.Business.Database.Models;
 using Shmear2.Business.Database;
-using System.Linq;
 
 namespace Shmear2.Test
 {
     public class GameTest : BaseShmearTest
     {
-        public GameTest() 
+        [Fact]
+        public async Task CreateGame()
+        {
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            var game = await shmearService.CreateGame();
+            Assert.True(game.Id > 0);
+            Assert.True(game.CreatedDate > DateTime.Now.AddMinutes(-1) && game.CreatedDate < DateTime.Now);
+            Assert.True(game.StartedDate == null);
+            Assert.True(game.Team1Points == 0);
+            Assert.True(game.Team2Points == 0);
+        }
+
+        [Fact]
+        public async Task GetOpenGame()
+        {
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            var game = await shmearService.CreateGame();
+            var openGame = await shmearService.GetOpenGame();
+            Assert.True(openGame.StartedDate == null);
+        }
+
+        [Fact]
+        public async Task GetGame()
+        {
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            var game = await shmearService.CreateGame();
+            var newGame = await shmearService.GetGame(game.Id);
+            Assert.True(game.Id == newGame.Id);
+        }
+
+        [Fact]
+        public async Task AddPlayer()
         {
             var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
             IShmearService shmearService = new ShmearService(cardDbContext);
             IPlayerService playerService = new PlayerService(cardDbContext);
-            IPlayerComputerService playerComputerService = new PlayerComputerService(
-                cardDbContext,
-                shmearService,
-                playerService
-            );
+            var game = await shmearService.CreateGame();
+            var player = GenerateNewPlayer($"GameTestAddPlayer");
+            player = await playerService.SavePlayer(player);
+            var gameAddPlayerChange = await shmearService.AddPlayer(game.Id, player.Id, 0);
+
+            // Player Keepalive and Game Player Add is two different records being changed
+            Assert.True(gameAddPlayerChange == 2);
         }
 
-        // [Fact]
-        // public async Task GameTestNew()
-        // {
-        //     var game = await _shmearService.CreateGame();
-        //     Assert.True(game.Id > 0);
-        //     Assert.True(game.CreatedDate > DateTime.Now.AddMinutes(-1) && game.CreatedDate < DateTime.Now);
-        //     Assert.True(game.StartedDate == null);
-        //     Assert.True(game.Team1Points == 0);
-        //     Assert.True(game.Team2Points == 0);
-        // }
-
-        // [Fact]
-        // public async Task GameTestOpen()
-        // {
-        //     var game = await _shmearService.CreateGame();
-        //     var openGame = await _shmearService.GetOpenGame();
-        //     Assert.True(openGame.StartedDate == null);
-        // }
-
-        // [Fact]
-        // public async Task GameTestGet()
-        // {
-        //     var game = await _shmearService.CreateGame();
-        //     var newGame = await _shmearService.GetGame(game.Id);
-        //     Assert.True(game.Id == newGame.Id);
-        // }
-
-        // [Fact]
-        // public async Task GameTestAddPlayer()
-        // {
-        //     var game = await _shmearService.CreateGame();
-        //     var player = GenerateNewPlayer($"GameTestAddPlayer");
-        //     player = await _playerService.SavePlayer(player);
-        //     var gameAddPlayerChange = await _shmearService.AddPlayer(game.Id, player.Id, 0);
-
-        //     // Player Keepalive and Game Player Add is two different records being changed
-        //     Assert.True(gameAddPlayerChange == 2);
-        // }
-
-        // [Fact]
-        // public async Task GameTestGetGamePlayer()
-        // {
-        //     var game = await _shmearService.CreateGame();
-        //     var player = GenerateNewPlayer($"GameTestGetGamePlayer");
-        //     player = await _playerService.SavePlayer(player);
-        //     await _shmearService.AddPlayer(game.Id, player.Id, 0);
-        //     var newPlayer = await _shmearService.GetGamePlayer(game.Id, player.Id);
-        //     Assert.True(newPlayer.PlayerId == player.Id);
-        // }
-
-        // [Fact]
-        // public async Task GameTestGetGamePlayers()
-        // {
-        //     var game = await _shmearService.CreateGame();
-        //     var players = new List<Player>();
-        //     for (int i = 0; i < 4; i++)
-        //     {
-        //         var player = GenerateNewPlayer($"GameTestGetGamePlayers{i}");
-        //         player = await _playerService.SavePlayer(player);
-        //         await _shmearService.AddPlayer(game.Id, player.Id, i);
-        //         players.Add(player);
-        //     }
-
-        //     var gamePlayers = await _shmearService.GetGamePlayers(game.Id);
-        //     Assert.True(gamePlayers.Count() == 4);
-        //     foreach (var gamePlayer in gamePlayers)
-        //     {
-        //         Assert.Contains(gamePlayer.PlayerId, players.Select(_ => _.Id));
-        //     }
-        // }
-
-        // [Fact]
-        // public async Task GameTestGetPlayersByGame()
-        // {
-        //     var game = await _shmearService.CreateGame();
-        //     var players = new List<Player>();
-        //     for (int i = 0; i < 4; i++)
-        //     {
-        //         var player = GenerateNewPlayer($"GameTestGetGamePlayers{i}");
-        //         player = await _playerService.SavePlayer(player);
-        //         await _shmearService.AddPlayer(game.Id, player.Id, i);
-        //         players.Add(player);
-        //     }
-
-        //     var newPlayers = await _shmearService.GetPlayersByGameAsync(game.Id);
-        //     Assert.True(newPlayers.Count() == 4);
-        //     foreach (var newPlayer in newPlayers)
-        //     {
-        //         Assert.Contains(newPlayer.Id, players.Select(_ => _.Id));
-        //     }
-        // }
+        [Fact]
+        public async Task GetGamePlayer()
+        {
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            IPlayerService playerService = new PlayerService(cardDbContext);
+            var game = await shmearService.CreateGame();
+            var player = GenerateNewPlayer($"GameTestGetGamePlayer");
+            player = await playerService.SavePlayer(player);
+            await shmearService.AddPlayer(game.Id, player.Id, 0);
+            var newPlayer = await shmearService.GetGamePlayer(game.Id, player.Id);
+            Assert.True(newPlayer.PlayerId == player.Id);
+        }
 
         [Fact]
-        public async Task GameTestEndRound()
+        public async Task GetGamePlayers()
+        {
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            IPlayerService playerService = new PlayerService(cardDbContext);
+            var game = await shmearService.CreateGame();
+            var players = new List<Player>();
+            for (int i = 0; i < 4; i++)
+            {
+                var player = GenerateNewPlayer($"GameTestGetGamePlayers{i}");
+                player = await playerService.SavePlayer(player);
+                await shmearService.AddPlayer(game.Id, player.Id, i);
+                players.Add(player);
+            }
+
+            var gamePlayers = await shmearService.GetGamePlayers(game.Id);
+            Assert.True(gamePlayers.Count() == 4);
+            foreach (var gamePlayer in gamePlayers)
+            {
+                Assert.Contains(gamePlayer.PlayerId, players.Select(_ => _.Id));
+            }
+        }
+
+        [Fact]
+        public async Task GetPlayersByGameAsync()
+        {
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            IPlayerService playerService = new PlayerService(cardDbContext);
+            var game = await shmearService.CreateGame();
+            var players = new List<Player>();
+            for (int i = 0; i < 4; i++)
+            {
+                var player = GenerateNewPlayer($"GameTestGetGamePlayers{i}");
+                player = await playerService.SavePlayer(player);
+                await shmearService.AddPlayer(game.Id, player.Id, i);
+                players.Add(player);
+            }
+
+            var newPlayers = await shmearService.GetPlayersByGameAsync(game.Id);
+            Assert.True(newPlayers.Count() == 4);
+            foreach (var newPlayer in newPlayers)
+            {
+                Assert.Contains(newPlayer.Id, players.Select(_ => _.Id));
+            }
+        }
+
+        [Fact]
+        public async Task EndRound()
         {
             var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
             IShmearService shmearService = new ShmearService(cardDbContext);
@@ -129,6 +134,27 @@ namespace Shmear2.Test
             var game = await shmearService.GetGame(gameId);
             var roundResult = await shmearService.EndRound(game.Id);
             Assert.True(roundResult.Team1RoundChange == 5 || roundResult.Team1RoundChange == -5);
+        }
+
+        [Fact]
+        public async Task GetHumanGamePlayers()
+        {
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            IPlayerService playerService = new PlayerService(cardDbContext);
+            var game = await shmearService.CreateGame();
+
+            var player = GenerateNewPlayer($"GetHumanGamePlayers{0}");
+            player = await playerService.SavePlayer(player);
+            await shmearService.AddPlayer(game.Id, player.Id, 0);
+
+            var computerPlayer = GenerateNewComputerPlayer($"GetHumanGamePlayers{1}");
+            computerPlayer = await playerService.SavePlayer(player);
+            await shmearService.AddPlayer(game.Id, computerPlayer.Id, 1);
+
+            var humanGamePlayers = await shmearService.GetHumanGamePlayers(game.Id);
+            Assert.Single(humanGamePlayers);
+            Assert.Equal(humanGamePlayers.Single().PlayerId, player.Id);
         }
 
         private async Task<int> PlayGameUntilEndRound(

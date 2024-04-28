@@ -18,16 +18,27 @@ public class BaseShmearTest
     }
 
     protected Player GenerateNewPlayer(string name)
+    {
+        return new Player()
         {
-            return new Player()
-            {
-                Id = 0,
-                ConnectionId = Guid.NewGuid().ToString(),
-                Name = name,
-                KeepAlive = DateTime.Now,
-            };
-	    
-        }
+            Id = 0,
+            ConnectionId = Guid.NewGuid().ToString(),
+            Name = name,
+            KeepAlive = DateTime.Now,
+        };
+    }
+
+    protected Player GenerateNewComputerPlayer(string name)
+    {
+        return new Player()
+        {
+            Id = 0,
+            ConnectionId = Guid.NewGuid().ToString(),
+            Name = name,
+            KeepAlive = DateTime.Now,
+            IsComputer = true,
+        };
+    }
 
     public static string GenerateRandomString(int length)
     {

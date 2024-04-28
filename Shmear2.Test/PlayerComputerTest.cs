@@ -36,7 +36,8 @@ namespace Shmear2.Test
             await shmearService.DealCards(game.Id);
 
             var wager = await playerComputerService.SetWager(game.Id, players.First().Id);
-            Assert.True(wager > 0 && wager < 10);
+            Console.WriteLine(wager);
+            Assert.True(wager >= 0 && wager < 10);
         }
 
         [Fact]

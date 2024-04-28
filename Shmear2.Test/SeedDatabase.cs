@@ -6,21 +6,11 @@ namespace Shmear2.Test;
 
 public class SeedDatabaseTest : BaseShmearTest
 {
-    public CardDbContext SeedDatabase(string? connectionString = null) 
-    {
-        var cardDbContext = GenerateCardDbContext(connectionString ?? Guid.NewGuid().ToString());
-        var shmearService = new ShmearService(cardDbContext);
-        SeedValues(shmearService);
-        SeedSuits(shmearService);
-        SeedCards(shmearService);
-        return cardDbContext;
-    }
-
     [Fact]
     public void Run()
     {
         var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
-        var shmearService = new ShmearService(cardDbContext);
+        IShmearService shmearService = new ShmearService(cardDbContext);
         SeedValues(shmearService);
         SeedSuits(shmearService);
         SeedCards(shmearService);
