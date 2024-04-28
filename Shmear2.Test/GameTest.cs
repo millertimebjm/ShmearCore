@@ -64,8 +64,15 @@ namespace Shmear2.Test
             var player = GenerateNewPlayer($"GameTestGetGamePlayer");
             player = await playerService.SavePlayer(player);
             await shmearService.AddPlayer(game.Id, player.Id, 0);
+
             var newPlayer = await shmearService.GetGamePlayer(game.Id, player.Id);
             Assert.True(newPlayer.PlayerId == player.Id);
+
+            var newPlayer2 = await shmearService.GetGamePlayer(newPlayer.Id);
+            Assert.True(newPlayer2.PlayerId == player.Id);
+
+            var newPlayer3 = await shmearService.GetGamePlayer(game.Id, player.ConnectionId);
+            Assert.True(newPlayer3.PlayerId == player.Id);
         }
 
         [Fact]
