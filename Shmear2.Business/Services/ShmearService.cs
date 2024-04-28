@@ -99,7 +99,8 @@ namespace Shmear2.Business.Services
                 .Include(p => p.Player)
                 .Where(_ => _.GameId == gameId
                     && _.Player.ConnectionId != null
-                    && _.Player.ConnectionId != "")
+                    && _.Player.ConnectionId != ""
+                    && !_.Player.IsComputer)
                 .ToListAsync();
         }
 

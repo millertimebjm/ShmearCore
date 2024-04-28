@@ -144,13 +144,19 @@ namespace Shmear2.Test
             IPlayerService playerService = new PlayerService(cardDbContext);
             var game = await shmearService.CreateGame();
 
-            var player = GenerateNewPlayer($"GetHumanGamePlayers{0}");
+            var player = GenerateNewPlayer("GetHumanGamePlayers{0}");
             player = await playerService.SavePlayer(player);
             await shmearService.AddPlayer(game.Id, player.Id, 0);
+            Console.WriteLine($"PlayerId: {player.Name}");
 
-            var computerPlayer = GenerateNewComputerPlayer($"GetHumanGamePlayers{1}");
-            computerPlayer = await playerService.SavePlayer(player);
+            var computerPlayer = GenerateNewComputerPlayer("GetHumanGamePlayers{1}");
+            computerPlayer = await playerService.SavePlayer(computerPlayer);
             await shmearService.AddPlayer(game.Id, computerPlayer.Id, 1);
+            Console.WriteLine($"ComputerPlayerId: {computerPlayer.Name}");
+
+            var allGamePlayers = await shmearService.GetGamePlayers(game.Id);
+            Console.WriteLine(string.Join(",", allGamePlayers.Select(_ => _.Player.Name)));
+            Assert.Equal(2, allGamePlayers.Count());
 
             var humanGamePlayers = await shmearService.GetHumanGamePlayers(game.Id);
             Assert.Single(humanGamePlayers);
@@ -208,6 +214,7 @@ namespace Shmear2.Test
                     }
 
                     var handCards = await shmearService.GetHand(game.Id, gamePlayerNextCard.PlayerId);
+
                     foreach (var handCard in handCards)
                     {
                         if (await shmearService.ValidCardPlay(game.Id, board.Id, gamePlayerNextCard.PlayerId, handCard.CardId))
