@@ -202,6 +202,16 @@ namespace Shmear2.Test
             Assert.True(allGamePlayersAfterRemove.Single(_ => _.PlayerId == computerPlayer2.Id).PlayerId == computerPlayer2.Id);
         }
 
+        //[Fact] Not ready for testing
+        private async Task ValidCardPlay_FirstCard()
+        {
+            var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
+            IShmearService shmearService = new ShmearService(cardDbContext);
+            await shmearService.SeedValues();
+            await shmearService.SeedSuits();
+            await shmearService.SeedCards();
+        }
+
         private async Task<int> PlayGameUntilEndRound(
             CardDbContext cardDbContext,
             IShmearService shmearService)

@@ -40,10 +40,10 @@ public interface IShmearService
     Task<Card> GetCardAsync(int id);
     Card GetCard(int id);
     Card GetCard(SuitEnum suit, ValueEnum value);
-    bool SeedSuits();
-    bool SeedValues();
+    Task<bool> SeedSuits();
+    Task<bool> SeedValues();
     Task<Card> GetCard(int suitId, ValueEnum valueEnum);
-    bool SeedCards();
+    Task<bool> SeedCards();
     Task<bool> AddCard(int gameId, int playerId, int cardId);
     Task<IEnumerable<HandCard>> GetHand(int gameId, int playerId);
     Task<IEnumerable<Trick>> GetTricks(int gameId);

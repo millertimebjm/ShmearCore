@@ -7,27 +7,27 @@ namespace Shmear2.Test;
 public class SeedDatabaseTest : BaseShmearTest
 {
     [Fact]
-    public void Run()
+    public async Task Run()
     {
         var cardDbContext = GenerateCardDbContext(Guid.NewGuid().ToString());
         IShmearService shmearService = new ShmearService(cardDbContext);
-        SeedValues(shmearService);
-        SeedSuits(shmearService);
-        SeedCards(shmearService);
+        await SeedValues(shmearService);
+        await SeedSuits(shmearService);
+        await SeedCards(shmearService);
     }
 
-    private static void SeedSuits(IShmearService shmearService)
+    private static async Task SeedSuits(IShmearService shmearService)
     {
-        Assert.True(shmearService.SeedSuits());
+        Assert.True(await shmearService.SeedSuits());
     }
 
-    private static void SeedValues(IShmearService shmearService)
+    private static async Task SeedValues(IShmearService shmearService)
     {
-        Assert.True(shmearService.SeedValues());
+        Assert.True(await shmearService.SeedValues());
     }
 
-    private static void SeedCards(IShmearService shmearService)
+    private static async Task SeedCards(IShmearService shmearService)
     {
-        Assert.True(shmearService.SeedCards());
+        Assert.True(await shmearService.SeedCards());
     }
 }

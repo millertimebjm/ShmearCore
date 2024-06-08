@@ -780,7 +780,7 @@ namespace Shmear2.Business.Services
             return _cardDb.Card.Single(_ => _.Suit.Name == suit.ToString() && _.Value.Name == value.ToString());
         }
 
-        public bool SeedSuits()
+        public async Task<bool> SeedSuits()
         {
             var suits = new List<Suit>()
             {
@@ -816,7 +816,7 @@ namespace Shmear2.Business.Services
                 if (!_cardDb.Suit.Any(_ => _.Name.Equals(suit.Name)))
                 {
                     _cardDb.Suit.Add(suit);
-                    _cardDb.SaveChanges();
+                    await _cardDb.SaveChangesAsync();
                 }
             }
             return true;
@@ -826,7 +826,7 @@ namespace Shmear2.Business.Services
         {
             return _cardDb.Card.Any();
         }
-        public bool SeedValues()
+        public async Task<bool> SeedValues()
         {
             var values = new List<Value>()
             {
@@ -900,7 +900,7 @@ namespace Shmear2.Business.Services
                 if (!_cardDb.Value.Any(_ => _.Name.Equals(value.Name)))
                 {
                     _cardDb.Value.Add(value);
-                    _cardDb.SaveChanges();
+                    await _cardDb.SaveChangesAsync();
                 }
             }
             return true;
@@ -915,7 +915,7 @@ namespace Shmear2.Business.Services
                 .SingleAsync(_ => _.SuitId == suitId && _.Value.Name == valueEnum.ToString());
         }
 
-        public bool SeedCards()
+        public async Task<bool> SeedCards()
         {
             foreach (SuitEnum suit in Enum.GetValues(typeof(SuitEnum)))
             {
@@ -925,8 +925,8 @@ namespace Shmear2.Business.Services
                     {
                         if (value != ValueEnum.Joker)
                         {
-                            var suitId = _cardDb.Suit.Single(_ => _.Name.Equals(suit.ToString())).Id;
-                            var valueId = _cardDb.Value.Single(_ => _.Name.Equals(value.ToString())).Id;
+                            var suitId = (await _cardDb.Suit.SingleAsync(_ => _.Name.Equals(suit.ToString()))).Id;
+                            var valueId = (await _cardDb.Value.SingleAsync(_ => _.Name.Equals(value.ToString()))).Id;
                             if (!_cardDb.Card.Any(_ => _.SuitId == suitId && _.ValueId == valueId))
                             {
                                 var card = new Card()
@@ -935,14 +935,14 @@ namespace Shmear2.Business.Services
                                     ValueId = valueId
                                 };
                                 _cardDb.Card.Add(card);
-                                _cardDb.SaveChanges();
+                                await _cardDb.SaveChangesAsync();
                             }
                         }
                     }
                 }
             }
-            var noneSuitId = _cardDb.Suit.Single(_ => _.Name.Equals(SuitEnum.None.ToString())).Id;
-            var jokerValueId = _cardDb.Value.Single(_ => _.Name.Equals(ValueEnum.Joker.ToString())).Id;
+            var noneSuitId = (await _cardDb.Suit.SingleAsync(_ => _.Name.Equals(SuitEnum.None.ToString()))).Id;
+            var jokerValueId = (await _cardDb.Value.SingleAsync(_ => _.Name.Equals(ValueEnum.Joker.ToString()))).Id;
             if (!_cardDb.Card.Any(_ => _.SuitId == noneSuitId && _.ValueId == jokerValueId))
             {
                 var joker = new Card()
@@ -952,7 +952,7 @@ namespace Shmear2.Business.Services
                 };
 
                 _cardDb.Card.Add(joker);
-                _cardDb.SaveChanges();
+                await _cardDb.SaveChangesAsync();
             }
             return true;
         }
