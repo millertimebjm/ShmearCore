@@ -11,9 +11,7 @@ $().ready(function () {
 
     console.log("Connection Created");
     const connection = new signalR.HubConnectionBuilder()
-        //.withUrl("https://shmearapi.bltmiller.com/shmearHub")
-        //.withUrl("https://shmearapi.bltmiller.com:8443/shmearHub")
-        .withUrl("http://localhost:5000/shmearHub")
+        .withUrl("/shmearHub")
         // .WithKeepAliveInterval(30)
         // .WithConnectionTimeout(600)
         .build();
