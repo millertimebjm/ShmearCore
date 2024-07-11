@@ -1,12 +1,5 @@
-﻿// var seats = ['', '', '', ''];
-// var buttons;
-// var shmearHub;
+﻿// python3 -m http.server 8079
 var gameId = 0;
-
-// var gameStarted = false;
-// var highestWager = 0;
-// var i = 0;
-// var handCardIds = ['', '', '', '', '', ''];
 var username = '';
 
 $().ready(function () {
@@ -16,11 +9,11 @@ $().ready(function () {
         window.location = "index.html";
     }
 
-    // buttons = [$('#seat1'), $('#seat2'), $('#seat3'), $('#seat4')];
-    // wagers = [$('#wager2link'), $('#wager3link'), $('#wager4link'), $('#wager5link')];
     console.log("Connection Created");
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/shmearHub")
+        //.withUrl("https://shmearapi.bltmiller.com/shmearHub")
+        //.withUrl("https://shmearapi.bltmiller.com:8443/shmearHub")
+        .withUrl("http://localhost:5000/shmearHub")
         // .WithKeepAliveInterval(30)
         // .WithConnectionTimeout(600)
         .build();
@@ -40,13 +33,22 @@ $().ready(function () {
         var seats = $('.seat');
         $.each(seats, function (index, value) {
             var seatUsername = seatArray[$(value).data('seatnumber') - 1];
+            console.log("find seatusername=" + $(value).find(".seatUsername").text());
             if (seatUsername === "") {
                 seatUsername = "Open";
+                $(value).parent().find(".addComputerSeat").show();
+                $(value).parent().find(".dropComputerSeat").hide();
+            }
+            else if (seatUsername.startsWith("Comp")) {
+                $(value).parent().find(".addComputerSeat").hide();
+                $(value).parent().find(".dropComputerSeat").show();
+            } else {
+                $(value).parent().find(".addComputerSeat").hide();
+                $(value).parent().find(".dropComputerSeat").hide();
             }
             $(value).find(".seatUsername").text(seatUsername);
         });
         gameId = openGameId;
-        // seatButtonUpdate();
     });
 
     document.addEventListener("dragstart", function (event) {
@@ -89,14 +91,28 @@ $().ready(function () {
                 $(value).attr("src", "/images/Cards/Empty.png");
             }
         });
-        //var arrowObject = getArrowObjectBySeatNumber(seatNumber);
+    });
+    $(".seat").hover(function () {
+        $(this).css('cursor', 'pointer');
     });
     $(".seat").on("click", function (e) {
         console.log(e.target);
         var seatNumber = $(e.target).closest(".seat").data("seatnumber");
         console.log("SetSeatStatus being called from Client.  GameId: " + gameId + " | seatNumber: " + seatNumber);
         var promise = connection.invoke("SetSeatStatus", gameId, seatNumber);
-    })
+    });
+    $(".addComputerSeat").on("click", function (e) {
+        console.log(e.target);
+        var seatNumber = $(e.target).data("computerseatid");
+        console.log("SetComputerSeatStatus being called from Client.  GameId: " + gameId + " | computerSeatNumber: " + seatNumber);
+        var promise = connection.invoke("SetComputerSeatStatus", gameId, seatNumber);
+    });
+    $(".dropComputerSeat").on("click", function (e) {
+        console.log(e.target);
+        var seatNumber = $(e.target).data("computerseatid");
+        console.log("SetComputerSeatStatus being called from Client.  GameId: " + gameId + " | computerSeatNumber: " + seatNumber);
+        var promise = connection.invoke("SetComputerSeatStatus", gameId, seatNumber);
+    });
     connection.on("CardUpdate", (cards) => {
         console.log("CardUpdate called from Server");
         var cardDivs = $(".card");
@@ -107,7 +123,6 @@ $().ready(function () {
 
         $('#seatDiv').hide();
         $('#gameDiv').show();
-
     });
     connection.on("PlayerWagerUpdate", (seatNumber, currentWager) => {
         console.log("PlayerWagerUpdate called from Server.  SeatNumber: " + seatNumber + " | MaxWager: " + currentWager);
